@@ -354,7 +354,7 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
       </div>
 
       {/* MAIN TWO-COLUMN GRID: STRICT MONTH GRID (LEFT) & DAY FOCUS (RIGHT) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.8fr)', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 0.75fr)', gap: 16, alignItems: 'start' }}>
         
         {/* LEFT COLUMN: PERFECTLY STRAIGHT 7-COLUMN MONTH GRID */}
         <div className="card" style={{ padding: 16 }}>
@@ -523,7 +523,7 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
         </div>
 
         {/* RIGHT COLUMN: FOCUSED DAY EVENT LIST */}
-        <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', minHeight: 480 }}>
+        <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', height: 505, boxSizing: 'border-box' }}>
           
           {/* Day View Header */}
           <div style={{ paddingBottom: 12, borderBottom: '1px solid var(--border)', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -578,7 +578,7 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
               </button>
             </div>
           ) : (
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingRight: 4 }}>
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingRight: 4, maxHeight: 370 }}>
               
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
                 <span>{selectedDayEvents.length} événement(s)</span>
