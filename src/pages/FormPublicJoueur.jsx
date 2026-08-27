@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { CheckCircle, Camera, AlertCircle } from 'lucide-react';
 import { TEAMS } from '../data/teamsData';
 import { generateId } from '../hooks/useLocalStorage';
+import { isCloudEnabled, saveMemberCloud } from '../services/firebase';
 import '../styles/forms.css';
 
 function resizeImage(file, maxWidth = 400) {
@@ -81,6 +82,9 @@ export function FormPublicJoueur() {
     };
 
     try {
+      if (isCloudEnabled()) {
+        saveMemberCloud(member);
+      }
       const existing = JSON.parse(localStorage.getItem('bcsn_members') || '[]');
       existing.push(member);
       localStorage.setItem('bcsn_members', JSON.stringify(existing));

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Palette, BookUser, CalendarDays, UserCircle, 
-  Menu, X, Link2, Copy, CheckCircle, ExternalLink, LogOut
+  Menu, X, Link2, Copy, CheckCircle, ExternalLink, LogOut, Cloud
 } from 'lucide-react';
 import { TEAMS } from './data/teamsData';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -14,6 +14,8 @@ import { ProfilesPage } from './pages/ProfilesPage';
 import { FormPublicJoueur } from './pages/FormPublicJoueur';
 import { FormPublicCoach } from './pages/FormPublicCoach';
 import { LoginGate, isAuthenticated } from './components/LoginGate';
+import { CloudConfigModal } from './components/CloudConfigModal';
+import { subscribeMembers, subscribeEvents, isCloudEnabled } from './services/firebase';
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard, section: 'principal' },
@@ -41,6 +43,29 @@ export default function App() {
   const [events, setEvents] = useLocalStorage('bcsn_events', []);
   const [toast, setToast] = useState(null);
   const [copiedLink, setCopiedLink] = useState(null);
+  const [showCloudModal, setShowCloudModal] = useState(false);
+
+  // Real-time Cloud subscription (Firestore)
+  useEffect(() => {
+    if (!isCloudEnabled()) return;
+
+    const unsubMembers = subscribeMembers((cloudMembers) => {
+      if (cloudMembers && cloudMembers.length > 0) {
+        setMembers(cloudMembers);
+      }
+    });
+
+    const unsubEvents = subscribeEvents((cloudEvents) => {
+      if (cloudEvents && cloudEvents.length > 0) {
+        setEvents(cloudEvents);
+      }
+    });
+
+    return () => {
+      if (unsubMembers) unsubMembers();
+      if (unsubEvents) unsubEvents();
+    };
+  }, []);
 
   // Hash-based routing for public forms
   const [publicForm, setPublicForm] = useState(null);
@@ -111,6 +136,7 @@ export default function App() {
   };
 
   const pendingCount = members.filter(m => m.imageConsent === 'pending').length;
+  const cloudActive = isCloudEnabled();
 
   return (
     <div className="app-layout">
@@ -154,8 +180,23 @@ export default function App() {
           ))}
         </nav>
 
-        {/* Liens formulaires publics & Déconnexion */}
+        {/* Liens formulaires publics, Status Cloud & Déconnexion */}
         <div style={{ padding: '12px 12px 16px', borderTop: '1px solid var(--border)' }}>
+          {/* Status Cloud DB */}
+          <button 
+            className="btn btn-secondary btn-sm w-full mb-12" 
+            onClick={() => setShowCloudModal(true)}
+            style={{ 
+              justify: 'center', fontSize: 11, gap: 6,
+              background: cloudActive ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)',
+              borderColor: cloudActive ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)',
+              color: cloudActive ? '#10B981' : '#F59E0B',
+            }}
+          >
+            <Cloud size={13} />
+            {cloudActive ? '🟢 Cloud DB Actif' : '⚙️ Configurer Cloud DB'}
+          </button>
+
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600 }}>Liens formulaires publics</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
             <button className="btn btn-secondary btn-sm w-full" onClick={() => handleCopyLink(linkJoueur, 'joueur')} style={{ justifyContent: 'center', fontSize: 12 }}>
@@ -200,6 +241,12 @@ export default function App() {
           {toast}
         </div>
       )}
+
+      <CloudConfigModal 
+        isOpen={showCloudModal} 
+        onClose={() => setShowCloudModal(false)}
+        onSaved={() => showToast('Configuration Cloud mise à jour !')}
+      />
     </div>
   );
 }
