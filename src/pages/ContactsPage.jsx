@@ -3,7 +3,7 @@ import { Search, Phone, Mail, Copy, CheckCircle, Users, Building2 } from 'lucide
 import { BUREAU } from '../data/teamsData';
 import { getInitials, copyToClipboard } from '../hooks/useLocalStorage';
 
-export function ContactsPage({ teams, members }) {
+export function ContactsPage({ teams, members, onSelectMember }) {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('coaches');
   const [copiedId, setCopiedId] = useState(null);
@@ -14,30 +14,39 @@ export function ContactsPage({ teams, members }) {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Build coach contacts from teams
-  const coachContacts = teams.map(t => ({
-    id: `coach-${t.id}`,
-    name: t.coach,
-    role: `Coach ${t.name}`,
-    phone: t.coachPhone,
-    type: 'coach',
-  }));
+  // Build coach contacts from teams & members
+  const coachContacts = teams.map(t => {
+    const coachMember = members.find(m => m.name.toLowerCase() === t.coach.toLowerCase() || (m.team === t.name && m.role === 'Coach'));
+    return {
+      id: coachMember ? coachMember.id : `coach-${t.id}`,
+      memberId: coachMember ? coachMember.id : null,
+      name: t.coach,
+      role: `Coach ${t.name}`,
+      phone: t.coachPhone,
+      type: 'coach',
+    };
+  });
 
   // Bureau contacts
-  const bureauContacts = BUREAU.map((b, i) => ({
-    id: `bureau-${i}`,
-    name: b.name,
-    role: b.role,
-    phone: b.phone,
-    email: b.email,
-    type: 'bureau',
-  }));
+  const bureauContacts = BUREAU.map((b, i) => {
+    const bureauMember = members.find(m => m.name.toLowerCase() === b.name.toLowerCase());
+    return {
+      id: bureauMember ? bureauMember.id : `bureau-${i}`,
+      memberId: bureauMember ? bureauMember.id : null,
+      name: b.name,
+      role: b.role,
+      phone: b.phone,
+      email: b.email,
+      type: 'bureau',
+    };
+  });
 
   // Member contacts (those with phone numbers)
   const memberContacts = members
     .filter(m => m.phone)
     .map(m => ({
       id: m.id,
+      memberId: m.id,
       name: m.name,
       role: `${m.role || 'Joueur'} — ${m.team || 'Non assigné'}`,
       phone: m.phone,
@@ -76,9 +85,11 @@ export function ContactsPage({ teams, members }) {
       <div className="contacts-grid">
         {contacts.map(c => (
           <div key={c.id} className="contact-card">
-            <div className="contact-avatar">{getInitials(c.name)}</div>
-            <div className="contact-info">
-              <div className="contact-name">{c.name}</div>
+            <div className="contact-avatar" style={{ cursor: c.memberId ? 'pointer' : 'default' }} onClick={() => c.memberId && onSelectMember && onSelectMember(c.memberId)}>
+              {getInitials(c.name)}
+            </div>
+            <div className="contact-info" style={{ cursor: c.memberId ? 'pointer' : 'default' }} onClick={() => c.memberId && onSelectMember && onSelectMember(c.memberId)}>
+              <div className="contact-name" style={{ color: c.memberId ? 'var(--primary-light)' : 'inherit' }}>{c.name}</div>
               <div className="contact-role">{c.role}</div>
               {c.phone && <div className="contact-phone"><Phone size={12} style={{ display: 'inline', marginRight: 4 }} />{c.phone}</div>}
               {c.email && <div className="contact-phone"><Mail size={12} style={{ display: 'inline', marginRight: 4 }} />{c.email}</div>}

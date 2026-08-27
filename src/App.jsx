@@ -15,6 +15,7 @@ import { FormPublicJoueur } from './pages/FormPublicJoueur';
 import { FormPublicCoach } from './pages/FormPublicCoach';
 import { LoginGate, isAuthenticated } from './components/LoginGate';
 import { CloudConfigModal } from './components/CloudConfigModal';
+import { MemberProfileModal } from './components/MemberProfileModal';
 import { subscribeMembers, subscribeEvents, isCloudEnabled } from './services/firebase';
 
 const NAV_ITEMS = [
@@ -44,6 +45,7 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [copiedLink, setCopiedLink] = useState(null);
   const [showCloudModal, setShowCloudModal] = useState(false);
+  const [selectedMemberId, setSelectedMemberId] = useState(null);
 
   // Real-time Cloud subscription (Firestore)
   useEffect(() => {
@@ -117,15 +119,21 @@ export default function App() {
     setSidebarOpen(false);
   };
 
+  const handleUpdateMember = (id, updates) => {
+    setMembers(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+  };
+
+  const selectedMember = selectedMemberId ? members.find(m => m.id === selectedMemberId) : null;
+
   const renderPage = () => {
     switch (activePage) {
-      case 'overview': return <OverviewPage members={members} events={events} teams={TEAMS} />;
-      case 'teams': return <TeamsPage teams={TEAMS} members={members} onNavigateProfile={() => setActivePage('profiles')} onUpdateMembers={setMembers} />;
+      case 'overview': return <OverviewPage members={members} events={events} teams={TEAMS} onSelectMember={setSelectedMemberId} />;
+      case 'teams': return <TeamsPage teams={TEAMS} members={members} onNavigateProfile={() => setActivePage('profiles')} onUpdateMembers={setMembers} onSelectMember={setSelectedMemberId} />;
       case 'visuals': return <VisualsPage teams={TEAMS} />;
-      case 'contacts': return <ContactsPage teams={TEAMS} members={members} />;
+      case 'contacts': return <ContactsPage teams={TEAMS} members={members} onSelectMember={setSelectedMemberId} />;
       case 'calendar': return <CalendarPage events={events} onUpdateEvents={setEvents} />;
-      case 'profiles': return <ProfilesPage members={members} onUpdateMembers={setMembers} teams={TEAMS} />;
-      default: return <OverviewPage members={members} events={events} teams={TEAMS} />;
+      case 'profiles': return <ProfilesPage members={members} onUpdateMembers={setMembers} teams={TEAMS} onSelectMember={setSelectedMemberId} />;
+      default: return <OverviewPage members={members} events={events} teams={TEAMS} onSelectMember={setSelectedMemberId} />;
     }
   };
 
@@ -247,6 +255,15 @@ export default function App() {
         onClose={() => setShowCloudModal(false)}
         onSaved={() => showToast('Configuration Cloud mise à jour !')}
       />
+
+      {selectedMember && (
+        <MemberProfileModal 
+          member={selectedMember} 
+          onClose={() => setSelectedMemberId(null)}
+          onUpdateMember={handleUpdateMember}
+          teams={TEAMS}
+        />
+      )}
     </div>
   );
 }

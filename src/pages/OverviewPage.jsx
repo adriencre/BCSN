@@ -1,7 +1,7 @@
 import React from 'react';
 import { Users, FileCheck, Camera, CalendarDays, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 
-export function OverviewPage({ members, events, teams }) {
+export function OverviewPage({ members, events, teams, onSelectMember }) {
   const totalMembers = members.length;
   const completedForms = members.filter(m => m.formCompleted).length;
   const consentGranted = members.filter(m => m.imageConsent === 'granted').length;
@@ -98,7 +98,11 @@ export function OverviewPage({ members, events, teams }) {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {recentMembers.map(m => (
-                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                <div 
+                  key={m.id} 
+                  onClick={() => onSelectMember && onSelectMember(m.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                >
                   <div className="table-avatar">{m.name ? m.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : '?'}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: 14 }}>{m.name}</div>

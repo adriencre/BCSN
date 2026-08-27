@@ -3,7 +3,7 @@ import { Users, UserPlus, ChevronRight, Search, Phone, Shield, Edit2, Trash2, X 
 import { CATEGORIES } from '../data/teamsData';
 import { getInitials, generateId } from '../hooks/useLocalStorage';
 
-export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers }) {
+export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, onSelectMember }) {
   const [selectedCategory, setSelectedCategory] = useState('Tous');
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [search, setSearch] = useState('');
@@ -125,10 +125,14 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers }
                 {teamMembers.map(m => (
                   <tr key={m.id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => onNavigateProfile(m.id)}>
-                        <div className="table-avatar">{getInitials(m.name)}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => (onSelectMember ? onSelectMember(m.id) : onNavigateProfile(m.id))}>
+                        {m.photo ? (
+                          <img src={m.photo} alt={m.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          <div className="table-avatar">{getInitials(m.name)}</div>
+                        )}
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 14 }}>{m.name}</div>
+                          <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--primary-light)' }}>{m.name}</div>
                           {m.phone && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.phone}</div>}
                         </div>
                       </div>
@@ -146,7 +150,7 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers }
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="btn-icon" title="Voir profil" onClick={() => onNavigateProfile(m.id)}><Edit2 size={14} /></button>
+                        <button className="btn-icon" title="Voir profil" onClick={() => (onSelectMember ? onSelectMember(m.id) : onNavigateProfile(m.id))}><Edit2 size={14} /></button>
                         <button className="btn-icon" title="Supprimer" onClick={() => handleDeleteMember(m.id)} style={{ color: 'var(--danger)' }}><Trash2 size={14} /></button>
                       </div>
                     </td>

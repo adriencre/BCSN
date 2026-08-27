@@ -2,11 +2,19 @@ import React, { useState } from 'react';
 import { Search, Filter, FileCheck, Camera, Eye, ArrowLeft } from 'lucide-react';
 import { getInitials } from '../hooks/useLocalStorage';
 
-export function ProfilesPage({ members, onUpdateMembers, teams }) {
+export function ProfilesPage({ members, onUpdateMembers, teams, onSelectMember }) {
   const [search, setSearch] = useState('');
   const [filterConsent, setFilterConsent] = useState('all');
   const [filterForm, setFilterForm] = useState('all');
   const [selectedMember, setSelectedMember] = useState(null);
+
+  const handleMemberClick = (memberId) => {
+    if (onSelectMember) {
+      onSelectMember(memberId);
+    } else {
+      setSelectedMember(memberId);
+    }
+  };
 
   const filtered = members.filter(m => {
     if (search && !m.name.toLowerCase().includes(search.toLowerCase()) && !(m.team || '').toLowerCase().includes(search.toLowerCase())) return false;
@@ -169,13 +177,16 @@ export function ProfilesPage({ members, onUpdateMembers, teams }) {
               {filtered.map(m => (
                 <tr key={m.id}>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div 
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+                      onClick={() => handleMemberClick(m.id)}
+                    >
                       {m.photo ? (
                         <img src={m.photo} alt={m.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
                       ) : (
                         <div className="table-avatar">{getInitials(m.name)}</div>
                       )}
-                      <span style={{ fontWeight: 600 }}>{m.name}</span>
+                      <span style={{ fontWeight: 600, color: 'var(--primary-light)' }}>{m.name}</span>
                     </div>
                   </td>
                   <td style={{ color: 'var(--text-secondary)' }}>{m.team || '—'}</td>
@@ -191,7 +202,7 @@ export function ProfilesPage({ members, onUpdateMembers, teams }) {
                     </span>
                   </td>
                   <td>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setSelectedMember(m.id)}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => handleMemberClick(m.id)}>
                       <Eye size={14} /> Voir
                     </button>
                   </td>
