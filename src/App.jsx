@@ -144,7 +144,7 @@ export default function App() {
       case 'visuals': return <VisualsPage teams={TEAMS} members={members} events={events} customAssets={customAssets} />;
       case 'media': return <MediaLibraryPage members={members} customAssets={customAssets} onUpdateCustomAssets={setCustomAssets} />;
       case 'contacts': return <ContactsPage teams={TEAMS} members={members} onSelectMember={setSelectedMemberId} />;
-      case 'calendar': return <CalendarPage events={events} onUpdateEvents={setEvents} />;
+      case 'calendar': return <CalendarPage events={events} onUpdateEvents={setEvents} onNavigateToVisuals={() => setActivePage('visuals')} />;
       case 'profiles': return <ProfilesPage members={members} onUpdateMembers={setMembers} teams={TEAMS} onSelectMember={setSelectedMemberId} />;
       default: return <OverviewPage members={members} events={events} teams={TEAMS} onSelectMember={setSelectedMemberId} />;
     }
