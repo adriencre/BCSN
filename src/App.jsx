@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Palette, BookUser, CalendarDays, UserCircle, 
-  Menu, X, Link2, Copy, CheckCircle, ExternalLink, LogOut, Cloud
+  Menu, X, Link2, Copy, CheckCircle, ExternalLink, LogOut, Cloud, FolderOpen
 } from 'lucide-react';
 import { TEAMS } from './data/teamsData';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -11,6 +10,7 @@ import { VisualsPage } from './pages/VisualsPage';
 import { ContactsPage } from './pages/ContactsPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { ProfilesPage } from './pages/ProfilesPage';
+import { MediaLibraryPage } from './pages/MediaLibraryPage';
 import { FormPublicJoueur } from './pages/FormPublicJoueur';
 import { FormPublicCoach } from './pages/FormPublicCoach';
 import { LoginGate, isAuthenticated } from './components/LoginGate';
@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard, section: 'principal' },
   { id: 'teams', label: 'Équipes & Effectifs', icon: Users, section: 'principal' },
   { id: 'visuals', label: 'Générateur Visuels', icon: Palette, section: 'outils' },
+  { id: 'media', label: 'Médiathèque Club', icon: FolderOpen, section: 'outils' },
   { id: 'contacts', label: 'Contacts', icon: BookUser, section: 'outils' },
   { id: 'calendar', label: 'Calendrier', icon: CalendarDays, section: 'outils' },
   { id: 'profiles', label: 'Profils & Consentements', icon: UserCircle, section: 'gestion' },
@@ -31,6 +32,7 @@ const PAGE_TITLES = {
   overview: 'Vue d\'ensemble',
   teams: 'Équipes & Effectifs',
   visuals: 'Générateur de Visuels',
+  media: 'Médiathèque & Ressources Visuelles',
   contacts: 'Contacts',
   calendar: 'Calendrier',
   profiles: 'Profils & Consentements',
@@ -42,6 +44,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [members, setMembers] = useLocalStorage('bcsn_members', []);
   const [events, setEvents] = useLocalStorage('bcsn_events', []);
+  const [customAssets, setCustomAssets] = useLocalStorage('bcsn_custom_assets', []);
   const [toast, setToast] = useState(null);
   const [copiedLink, setCopiedLink] = useState(null);
   const [showCloudModal, setShowCloudModal] = useState(false);
@@ -129,7 +132,8 @@ export default function App() {
     switch (activePage) {
       case 'overview': return <OverviewPage members={members} events={events} teams={TEAMS} onSelectMember={setSelectedMemberId} />;
       case 'teams': return <TeamsPage teams={TEAMS} members={members} onNavigateProfile={() => setActivePage('profiles')} onUpdateMembers={setMembers} onSelectMember={setSelectedMemberId} />;
-      case 'visuals': return <VisualsPage teams={TEAMS} members={members} events={events} />;
+      case 'visuals': return <VisualsPage teams={TEAMS} members={members} events={events} customAssets={customAssets} />;
+      case 'media': return <MediaLibraryPage members={members} customAssets={customAssets} onUpdateCustomAssets={setCustomAssets} />;
       case 'contacts': return <ContactsPage teams={TEAMS} members={members} onSelectMember={setSelectedMemberId} />;
       case 'calendar': return <CalendarPage events={events} onUpdateEvents={setEvents} />;
       case 'profiles': return <ProfilesPage members={members} onUpdateMembers={setMembers} teams={TEAMS} onSelectMember={setSelectedMemberId} />;
