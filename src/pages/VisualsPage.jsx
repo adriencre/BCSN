@@ -25,11 +25,11 @@ const FORMATS = [
 
 // Layout Styles
 const LAYOUT_STYLES = [
-  { id: 'streetwear', name: '⚡ Streetwear Bold (Pavés Heavy)', icon: 'ph:layout-bold' },
-  { id: 'cyber', name: '🟢 Cyber Neon (Contours Fluo)', icon: 'ph:lightning-bold' },
-  { id: 'college', name: '🎓 Heritage College (Split Rétro)', icon: 'ph:student-bold' },
-  { id: 'editorial', name: '📰 Editorial Magazine (Titre XL)', icon: 'ph:newspaper-bold' },
-  { id: 'ticket', name: '🎟️ Ticket Pass Match (Vintage)', icon: 'ph:ticket-bold' },
+  { id: 'streetwear', name: 'Streetwear Bold (Pavés Heavy)', icon: 'ph:layout-bold' },
+  { id: 'cyber', name: 'Cyber Neon (Contours Fluo)', icon: 'ph:lightning-bold' },
+  { id: 'college', name: 'Heritage College (Split Rétro)', icon: 'ph:student-bold' },
+  { id: 'editorial', name: 'Editorial Magazine (Titre XL)', icon: 'ph:newspaper-bold' },
+  { id: 'ticket', name: 'Ticket Pass Match (Vintage)', icon: 'ph:ticket-bold' },
 ];
 
 // Fonts
@@ -108,14 +108,14 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     programTitle: 'PROGRAMME DU WEEK-END',
     programSubtitle: 'SAMEDI 28 & DIMANCHE 29',
     weekendMatches: [
-      { id: 'm1', category: 'U13 GARÇONS', home: 'BCSN', away: 'NEVERS BASKET', date: 'SAM. 14:00', lieu: 'DOMICILE 🏠', tag: 'DÉPARTEMENTAL' },
-      { id: 'm2', category: 'U15 FÉMININES', home: 'BCSN', away: 'CHARITOISE', date: 'SAM. 16:30', lieu: 'DOMICILE 🏠', tag: 'RÉGIONAL' },
-      { id: 'm3', category: 'SÉNIORS 1', home: 'US COSNE', away: 'BCSN', date: 'DIM. 15:30', lieu: 'EXTÉRIEUR ✈️', tag: 'CHAMPIONNAT' },
+      { id: 'm1', category: 'U13 GARÇONS', home: 'BCSN', away: 'NEVERS BASKET', date: 'SAM. 14:00', lieu: 'DOMICILE', tag: 'DÉPARTEMENTAL' },
+      { id: 'm2', category: 'U15 FÉMININES', home: 'BCSN', away: 'CHARITOISE', date: 'SAM. 16:30', lieu: 'DOMICILE', tag: 'RÉGIONAL' },
+      { id: 'm3', category: 'SÉNIORS 1', home: 'US COSNE', away: 'BCSN', date: 'DIM. 15:30', lieu: 'EXTÉRIEUR', tag: 'CHAMPIONNAT' },
     ],
 
     // Announcement template
     customTitle: 'VICTOIRE DU BCSN !',
-    customSubtitle: 'Une prestation XXL de nos séniors devant notre public déchaîné ! Merci à tous nos bénévoles et supporters ! 🏀🔥',
+    customSubtitle: 'Une prestation XXL de nos séniors devant notre public déchaîné ! Merci à tous nos bénévoles et supporters !',
   });
 
   const canvasRef = useRef(null);
@@ -131,7 +131,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
       home: 'BCSN',
       away: 'ADVERSAIRE',
       date: 'SAM. 15:00',
-      lieu: 'DOMICILE 🏠',
+      lieu: 'DOMICILE',
       tag: 'MATCH'
     };
     setConfig(prev => ({ ...prev, weekendMatches: [...prev.weekendMatches, newM] }));
@@ -160,7 +160,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
       home: 'BCSN',
       away: ev.title || 'ADVERSAIRE',
       date: ev.date ? `${new Date(ev.date).toLocaleDateString('fr-FR', { weekday: 'short' }).toUpperCase()} ${ev.time || ''}` : 'CE WEEK-END',
-      lieu: ev.lieu ? ev.lieu.toUpperCase() : 'DOMICILE 🏠',
+      lieu: ev.lieu ? ev.lieu.toUpperCase() : 'DOMICILE',
       tag: ev.type ? ev.type.toUpperCase() : 'CHAMPIONNAT'
     }));
     setConfig(prev => ({ ...prev, weekendMatches: imported }));
@@ -181,30 +181,30 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     }
   };
 
-  // Generate Instagram Caption ready to copy
+  // Generate Clean Instagram Caption without emojis
   const generateCaption = () => {
     const hashtag = "#BCSN #BasketClubSaoneNivernais #Basketball #StreetwearBasket #FFBB";
     switch (selectedTemplate.id) {
       case 'result':
-        return `${config.isVictory ? '🏆 VICTOIRE !' : '🔴 FIN DU MATCH'}\n\n` +
-          `🏀 ${config.category || 'BCSN'} vs ${config.teamAway}\n` +
-          `📊 Score Final : ${config.teamHome} ${config.score1} - ${config.score2} ${config.teamAway}\n` +
-          `${config.quarterDetails ? `⏱️ ${config.quarterDetails}\n` : ''}\n` +
+        return `${config.isVictory ? 'VICTOIRE !' : 'FIN DU MATCH'}\n\n` +
+          `${config.category || 'BCSN'} vs ${config.teamAway}\n` +
+          `Score Final : ${config.teamHome} ${config.score1} - ${config.score2} ${config.teamAway}\n` +
+          `${config.quarterDetails ? `${config.quarterDetails}\n` : ''}\n` +
           `${config.customSubtitle}\n\n${hashtag}`;
 
       case 'match_day':
-        return `⚔️ JOUR DE MATCH !\n\n` +
-          `🏀 ${config.category} accueille ${config.teamAway}\n` +
-          `🗓️ ${config.date ? new Date(config.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Ce week-end'}\n` +
-          `⏰ Coup d'envoi à ${config.time}\n` +
-          `📍 ${config.lieu}\n` +
-          `🏆 ${config.competition}\n\n` +
+        return `JOUR DE MATCH !\n\n` +
+          `${config.category} accueille ${config.teamAway}\n` +
+          `Date : ${config.date ? new Date(config.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Ce week-end'}\n` +
+          `Coup d'envoi à ${config.time}\n` +
+          `Lieu : ${config.lieu}\n` +
+          `Compétition : ${config.competition}\n\n` +
           `Venez pousser les vert et blanc !\n\n${hashtag}`;
 
       case 'player_mvp':
-        return `⭐ MVP DU MATCH !\n\n` +
-          `👏 Énorme performance de ${selectedMember ? selectedMember.name : 'notre joueur'} !\n` +
-          `📈 Stats du match :\n` +
+        return `MVP DU MATCH !\n\n` +
+          `Excellente performance de ${selectedMember ? selectedMember.name : 'notre joueur'} !\n` +
+          `Stats du match :\n` +
           `• ${config.stat1Value} ${config.stat1Label}\n` +
           `• ${config.stat2Value} ${config.stat2Label}\n` +
           `• ${config.stat3Value} ${config.stat3Label}\n` +
@@ -212,13 +212,13 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           `Félicitations au MVP !\n\n${hashtag}`;
 
       case 'weekend_program':
-        return `📅 ${config.programTitle}\n` +
-          `🗓️ ${config.programSubtitle}\n\n` +
+        return `${config.programTitle}\n` +
+          `${config.programSubtitle}\n\n` +
           config.weekendMatches.map(m => `• ${m.category} : ${m.home} vs ${m.away} (${m.date} - ${m.lieu})`).join('\n') +
           `\n\nVenez nombreux encourager toutes les équipes du BCSN !\n\n${hashtag}`;
 
       default:
-        return `📢 ${config.customTitle}\n\n${config.customSubtitle}\n\n${hashtag}`;
+        return `${config.customTitle}\n\n${config.customSubtitle}\n\n${hashtag}`;
     }
   };
 
@@ -674,7 +674,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
             {selectedTemplate.id === 'result' && (
               <>
-                <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--primary-light)' }}>🏆 Édition Score & Résultat</h4>
+                <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--primary-light)' }}>Édition Score & Résultat</h4>
                 <div className="grid-2 mb-12">
                   <div className="input-group">
                     <label className="input-label">Club Domicile</label>
@@ -718,7 +718,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
             {selectedTemplate.id === 'match_day' && (
               <>
-                <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--primary-light)' }}>⚔️ Édition Jour de Match</h4>
+                <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--primary-light)' }}>Édition Jour de Match</h4>
                 <div className="input-group mb-12">
                   <label className="input-label">Compétition / Titre Choc</label>
                   <input className="input" value={config.competition} onChange={e => setConfig({...config, competition: e.target.value})} placeholder="Ex: CHAMPIONNAT RÉGIONAL" />
@@ -752,13 +752,13 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
             {selectedTemplate.id === 'player_mvp' && (
               <>
-                <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--primary-light)' }}>⭐ Édition MVP / Joueur</h4>
+                <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--primary-light)' }}>Édition MVP / Joueur</h4>
                 <div className="input-group mb-12">
                   <label className="input-label">Sélectionner le Joueur BDD (Photo automatique)</label>
                   <select className="input select" value={config.selectedMemberId} onChange={e => setConfig({...config, selectedMemberId: e.target.value})}>
                     <option value="">-- Choisir dans la Médiathèque BDD --</option>
                     {members.map(m => (
-                      <option key={m.id} value={m.id}>{m.name} ({m.team || m.role || 'Membre'}) {m.photo ? '📸' : ''}</option>
+                      <option key={m.id} value={m.id}>{m.name} ({m.team || m.role || 'Membre'})</option>
                     ))}
                   </select>
                 </div>
@@ -812,7 +812,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             {selectedTemplate.id === 'weekend_program' && (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary-light)', margin: 0 }}>📅 Programme du Week-End (Liste N Matchs)</h4>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary-light)', margin: 0 }}>Programme du Week-End (Liste N Matchs)</h4>
                   <button className="btn btn-secondary btn-sm" onClick={handleImportCalendarEvents} title="Importer les prochains matchs du calendrier BDD">
                     <Zap size={13} style={{ color: 'var(--warning)' }} /> Importer du Calendrier
                   </button>
@@ -847,7 +847,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                       </div>
                       <div className="grid-2">
                         <input className="input" placeholder="Date & Heure (ex: Samedi 14h00)" value={m.date} onChange={e => handleUpdateMatch(m.id, 'date', e.target.value)} />
-                        <input className="input" placeholder="Lieu (ex: Domicile 🏠)" value={m.lieu} onChange={e => handleUpdateMatch(m.id, 'lieu', e.target.value)} />
+                        <input className="input" placeholder="Lieu (ex: DOMICILE)" value={m.lieu} onChange={e => handleUpdateMatch(m.id, 'lieu', e.target.value)} />
                       </div>
                     </div>
                   ))}
@@ -861,7 +861,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
             {selectedTemplate.id === 'announcement' && (
               <>
-                <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--primary-light)' }}>📢 Édition Flash Info / Communiqué</h4>
+                <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--primary-light)' }}>Édition Flash Info / Communiqué</h4>
                 <div className="input-group mb-12">
                   <label className="input-label">Titre de l'annonce</label>
                   <input className="input" value={config.customTitle} onChange={e => setConfig({...config, customTitle: e.target.value})} />
