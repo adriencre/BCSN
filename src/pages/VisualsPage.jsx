@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { 
   Download, Type, Palette, Image as ImageIcon, RefreshCw, 
   Sparkles, Trophy, Calendar, Users, Share2, Copy, Check, Sliders, Layers, 
-  Swords, Megaphone, Plus, Trash2, Zap, LayoutGrid, Paintbrush, ArrowUpRight
+  Swords, Megaphone, Plus, Trash2, Zap, LayoutGrid, Paintbrush, ArrowUpRight, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { getInitials } from '../hooks/useLocalStorage';
@@ -12,7 +12,7 @@ const TEMPLATES = [
   { id: 'result', name: 'Résultat de Match', icon: 'ph:trophy-bold', desc: 'Score final, victoires & détails' },
   { id: 'match_day', name: 'Jour de Match', icon: 'ph:swords-bold', desc: 'Affiche de rencontre, lieu & heure' },
   { id: 'player_mvp', name: 'MVP / Carte Joueur', icon: 'ph:star-bold', desc: 'Mise en avant joueur & photo réelle' },
-  { id: 'weekend_program', name: 'Programme Week-End', icon: 'ph:calendar-blank-bold', desc: 'Planning N matchs personnalisables' },
+  { id: 'weekend_program', name: 'Programme Week-End', icon: 'ph:calendar-blank-bold', desc: 'Planning N matchs avec découpage auto' },
   { id: 'announcement', name: 'Flash Info / Annonce', icon: 'ph:megaphone-bold', desc: 'Communiqué officiel du BCSN' },
 ];
 
@@ -65,9 +65,12 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   const [selectedFont, setSelectedFont] = useState(FONTS[0]);
   const [selectedBgUrl, setSelectedBgUrl] = useState(BUILTIN_TEXTURES[0].url);
   const [accentColor, setAccentColor] = useState('#168E56');
+  const [homeColor, setHomeColor] = useState('#10B981'); // Distinct Home Color
+  const [awayColor, setAwayColor] = useState('#F59E0B'); // Distinct Away Color
   const [grainOverlay, setGrainOverlay] = useState(true);
   const [photoFilter, setPhotoFilter] = useState('none');
   const [copiedCaption, setCopiedCaption] = useState(false);
+  const [programPage, setProgramPage] = useState(0); // Pagination for multi-post program
 
   // Full customizable configuration
   const [config, setConfig] = useState({
@@ -111,6 +114,8 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
       { id: 'm1', category: 'U13 GARÇONS', home: 'BCSN', away: 'NEVERS BASKET', date: 'SAM. 14:00', lieu: 'DOMICILE', tag: 'DÉPARTEMENTAL' },
       { id: 'm2', category: 'U15 FÉMININES', home: 'BCSN', away: 'CHARITOISE', date: 'SAM. 16:30', lieu: 'DOMICILE', tag: 'RÉGIONAL' },
       { id: 'm3', category: 'SÉNIORS 1', home: 'US COSNE', away: 'BCSN', date: 'DIM. 15:30', lieu: 'EXTÉRIEUR', tag: 'CHAMPIONNAT' },
+      { id: 'm4', category: 'U18 GARÇONS', home: 'BCSN', away: 'DECIZE', date: 'DIM. 13:00', lieu: 'DOMICILE', tag: 'DÉPARTEMENTAL' },
+      { id: 'm5', category: 'SÉNIORS 2', home: 'VAUZELLES', away: 'BCSN', date: 'DIM. 17:00', lieu: 'EXTÉRIEUR', tag: 'CHAMPIONNAT' },
     ],
 
     // Announcement template
@@ -119,9 +124,17 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   });
 
   const canvasRef = useRef(null);
-
   const customBackgrounds = customAssets.filter(a => a.type === 'background');
   const selectedMember = members.find(m => m.id === config.selectedMemberId);
+
+  // Match pagination logic (3 or 4 matches per post depending on format)
+  const matchesPerPage = selectedFormat.id === 'banner' ? 3 : 4;
+  const totalProgramPages = Math.ceil(config.weekendMatches.length / matchesPerPage) || 1;
+  const safeProgramPage = Math.min(programPage, totalProgramPages - 1);
+  const visibleProgramMatches = config.weekendMatches.slice(
+    safeProgramPage * matchesPerPage, 
+    (safeProgramPage + 1) * matchesPerPage
+  );
 
   // Dynamic match add/remove/edit for Weekend Program
   const handleAddMatch = () => {
@@ -154,7 +167,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
       alert('Aucun événement enregistré dans le calendrier pour le moment.');
       return;
     }
-    const imported = events.slice(0, 5).map((ev, i) => ({
+    const imported = events.map((ev, i) => ({
       id: `m-imp-${i}`,
       category: ev.category || 'MATCH BCSN',
       home: 'BCSN',
@@ -164,24 +177,41 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
       tag: ev.type ? ev.type.toUpperCase() : 'CHAMPIONNAT'
     }));
     setConfig(prev => ({ ...prev, weekendMatches: imported }));
+    setProgramPage(0);
+  };
+
+  // Export PNG function
+  const exportSingleCanvas = async (fileName) => {
+    const node = canvasRef.current;
+    if (!node) return;
+    const { default: html2canvas } = await import('html2canvas');
+    const canvas = await html2canvas(node, { backgroundColor: null, scale: 3, useCORS: true });
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   };
 
   const handleDownload = async () => {
-    const node = canvasRef.current;
-    if (!node) return;
-    try {
-      const { default: html2canvas } = await import('html2canvas');
-      const canvas = await html2canvas(node, { backgroundColor: null, scale: 3, useCORS: true });
-      const link = document.createElement('a');
-      link.download = `bcsn-post-${selectedTemplate.id}-${Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    } catch (err) {
-      console.error('Export PNG failed:', err);
+    if (selectedTemplate.id === 'weekend_program' && totalProgramPages > 1) {
+      const pName = `bcsn-programme-partie-${safeProgramPage + 1}-${Date.now()}.png`;
+      await exportSingleCanvas(pName);
+    } else {
+      await exportSingleCanvas(`bcsn-post-${selectedTemplate.id}-${Date.now()}.png`);
     }
   };
 
-  // Generate Clean Instagram Caption without emojis
+  // Download all pages sequentially for multi-post program
+  const handleDownloadAllPages = async () => {
+    for (let p = 0; p < totalProgramPages; p++) {
+      setProgramPage(p);
+      // Wait for React DOM update
+      await new Promise(r => setTimeout(r, 400));
+      await exportSingleCanvas(`bcsn-programme-partie-${p + 1}-sur-${totalProgramPages}.png`);
+    }
+  };
+
+  // Generate Clean Instagram Caption
   const generateCaption = () => {
     const hashtag = "#BCSN #BasketClubSaoneNivernais #Basketball #StreetwearBasket #FFBB";
     switch (selectedTemplate.id) {
@@ -228,13 +258,12 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     setTimeout(() => setCopiedCaption(false), 2500);
   };
 
-  // Render Visual Canvas Output dynamically by selected layout & template
+  // Render Visual Canvas Output
   const renderVisualContent = () => {
     const isStory = selectedFormat.id === 'story';
     const isBanner = selectedFormat.id === 'banner';
     const isCyber = selectedLayout.id === 'cyber';
     const isCollege = selectedLayout.id === 'college';
-    const isEditorial = selectedLayout.id === 'editorial';
     const isTicket = selectedLayout.id === 'ticket';
 
     const visualStyle = {
@@ -273,7 +302,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           }} />
         )}
 
-        {/* Vintage Halftone Grain Layer */}
+        {/* Vintage Halftone Grain Layer (Only if grainOverlay is true!) */}
         {grainOverlay && (
           <div style={{
             position: 'absolute', inset: 0, opacity: 0.18,
@@ -307,15 +336,26 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             </div>
           </div>
           
-          {/* Top Right Category Badge */}
-          <div style={{
-            fontSize: (config.category || '').length > 15 ? 8.5 : 10,
-            fontWeight: 900, padding: '4px 10px', borderRadius: isTicket ? 0 : 4,
-            background: accentColor, color: '#FFF', border: '1px solid #FFF',
-            textTransform: 'uppercase', letterSpacing: 0.5, boxShadow: '3px 3px 0px #000',
-            whiteSpace: 'nowrap', flexShrink: 0
-          }}>
-            {config.category || 'SENIORS'}
+          {/* Top Right Category / Multi-post Badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            {selectedTemplate.id === 'weekend_program' && totalProgramPages > 1 && (
+              <div style={{
+                fontSize: 9, fontWeight: 900, padding: '4px 8px', borderRadius: 4,
+                background: '#000', color: '#FFF', border: '1px solid #FFF',
+                textTransform: 'uppercase', letterSpacing: 0.5, boxShadow: '2px 2px 0px #000'
+              }}>
+                PARTIE {safeProgramPage + 1}/{totalProgramPages}
+              </div>
+            )}
+            <div style={{
+              fontSize: (config.category || '').length > 15 ? 8.5 : 10,
+              fontWeight: 900, padding: '4px 10px', borderRadius: isTicket ? 0 : 4,
+              background: accentColor, color: '#FFF', border: '1px solid #FFF',
+              textTransform: 'uppercase', letterSpacing: 0.5, boxShadow: '3px 3px 0px #000',
+              whiteSpace: 'nowrap'
+            }}>
+              {config.category || 'SENIORS'}
+            </div>
           </div>
         </div>
 
@@ -458,41 +498,47 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             </div>
           )}
 
-          {/* TEMPLATE 4: DYNAMIC WEEKEND PROGRAM */}
+          {/* TEMPLATE 4: DYNAMIC WEEKEND PROGRAM (WITH HOME/AWAY DISTINCT COLORS) */}
           {selectedTemplate.id === 'weekend_program' && (
             <div style={{ width: '100%', textAlign: 'center' }}>
               <div style={{ fontSize: isStory ? 18 : 13, letterSpacing: 2, textTransform: 'uppercase', color: accentColor, marginBottom: 2, fontWeight: 900 }}>
                 {config.programTitle}
               </div>
-              <div style={{ fontSize: 9.5, opacity: 0.85, fontFamily: "'Inter', sans-serif", marginBottom: 10, letterSpacing: 1 }}>
+              <div style={{ fontSize: 9.5, opacity: 0.85, fontFamily: "'Inter', sans-serif", marginBottom: 8, letterSpacing: 1 }}>
                 {config.programSubtitle}
               </div>
 
-              {/* Dynamic Matches List */}
-              <div style={{
-                display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
-                maxHeight: isStory ? 380 : 260, overflowY: 'auto', paddingRight: 2
-              }}>
-                {config.weekendMatches.map((m) => (
-                  <div key={m.id} style={{
-                    background: 'rgba(0,0,0,0.7)', padding: '6px 12px', borderRadius: isTicket ? 0 : 6,
-                    borderLeft: `4px solid ${accentColor}`, border: '1px solid rgba(255,255,255,0.15)',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11
-                  }}>
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontWeight: 900, fontSize: 11, color: accentColor, textTransform: 'uppercase' }}>
-                        {m.category}
+              {/* Dynamic Matches List for Current Page */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
+                {visibleProgramMatches.map((m) => {
+                  const isHome = (m.lieu || '').toUpperCase().includes('DOM');
+                  const matchColor = isHome ? homeColor : awayColor;
+                  return (
+                    <div key={m.id} style={{
+                      background: 'rgba(0,0,0,0.72)', padding: '7px 12px', borderRadius: isTicket ? 0 : 6,
+                      borderLeft: `5px solid ${matchColor}`, border: '1px solid rgba(255,255,255,0.15)',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11
+                    }}>
+                      <div style={{ textAlign: 'left' }}>
+                        <div style={{ fontWeight: 900, fontSize: 10.5, color: matchColor, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>{m.category}</span>
+                          <span style={{
+                            fontSize: 7.5, padding: '1px 5px', borderRadius: 3, background: matchColor, color: '#FFF', fontWeight: 800
+                          }}>
+                            {isHome ? 'DOMICILE' : 'EXTÉRIEUR'}
+                          </span>
+                        </div>
+                        <div style={{ fontWeight: 800, fontSize: 12, marginTop: 1 }}>
+                          {m.home} <span style={{ opacity: 0.6 }}>vs</span> {m.away}
+                        </div>
                       </div>
-                      <div style={{ fontWeight: 800, fontSize: 12 }}>
-                        {m.home} <span style={{ opacity: 0.6 }}>vs</span> {m.away}
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>{m.date}</div>
+                        <div style={{ fontSize: 8.5, opacity: 0.8, fontFamily: "'Inter', sans-serif" }}>{m.lieu}</div>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>{m.date}</div>
-                      <div style={{ fontSize: 8.5, opacity: 0.8, fontFamily: "'Inter', sans-serif" }}>{m.lieu}</div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -560,6 +606,22 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             Personnalisation Totale
           </h3>
 
+          {/* Grain Toggle Checkbox */}
+          <div className="input-group mb-16" style={{ background: 'var(--bg-card)', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', cursor: 'pointer', margin: 0 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon icon="ph:sparkle-bold" width="16" height="16" color="var(--primary-light)" />
+                Effet Grain Sérigraphie (Papier Rétro Usé)
+              </span>
+              <input 
+                type="checkbox" 
+                checked={grainOverlay} 
+                onChange={e => setGrainOverlay(e.target.checked)} 
+                style={{ width: 20, height: 20, accentColor: '#168E56', cursor: 'pointer' }} 
+              />
+            </label>
+          </div>
+
           {/* Formats Selector */}
           <div className="input-group mb-16">
             <label className="input-label">Format d'export</label>
@@ -609,6 +671,21 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                 style={{ width: 36, height: 36, border: 'none', background: 'none', cursor: 'pointer' }} 
                 title="Couleur Personnalisée (HEX)"
               />
+            </div>
+          </div>
+
+          {/* Distinct Home & Away Match Colors */}
+          <div className="input-group mb-16">
+            <label className="input-label">Couleurs Distinctes Matchs (Domicile vs Extérieur)</label>
+            <div className="grid-2">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-card)', padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)' }}>
+                <input type="color" value={homeColor} onChange={e => setHomeColor(e.target.value)} style={{ width: 26, height: 26, border: 'none', cursor: 'pointer' }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: homeColor }}>Domicile</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-card)', padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)' }}>
+                <input type="color" value={awayColor} onChange={e => setAwayColor(e.target.value)} style={{ width: 26, height: 26, border: 'none', cursor: 'pointer' }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: awayColor }}>Extérieur</span>
+              </div>
             </div>
           </div>
 
@@ -847,7 +924,10 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                       </div>
                       <div className="grid-2">
                         <input className="input" placeholder="Date & Heure (ex: Samedi 14h00)" value={m.date} onChange={e => handleUpdateMatch(m.id, 'date', e.target.value)} />
-                        <input className="input" placeholder="Lieu (ex: DOMICILE)" value={m.lieu} onChange={e => handleUpdateMatch(m.id, 'lieu', e.target.value)} />
+                        <select className="input select" value={m.lieu} onChange={e => handleUpdateMatch(m.id, 'lieu', e.target.value)}>
+                          <option value="DOMICILE">DOMICILE (Couleur Vert)</option>
+                          <option value="EXTÉRIEUR">EXTÉRIEUR (Couleur Or)</option>
+                        </select>
                       </div>
                     </div>
                   ))}
@@ -896,17 +976,53 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           </div>
         </div>
 
-        {/* Right Side: Visual Preview Canvas */}
+        {/* Right Side: Visual Preview Canvas & Multi-post Pagination */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
               <Icon icon="ph:eye-bold" width="20" height="20" color="var(--primary-light)" />
               Aperçu Rétro Streetwear HD
             </h3>
-            <button className="btn btn-primary" onClick={handleDownload}>
-              <Download size={16} /> Exporter PNG
-            </button>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              {selectedTemplate.id === 'weekend_program' && totalProgramPages > 1 && (
+                <button className="btn btn-secondary" onClick={handleDownloadAllPages} style={{ fontSize: 12 }}>
+                  <Download size={14} /> Exporter les {totalProgramPages} Parties
+                </button>
+              )}
+              <button className="btn btn-primary" onClick={handleDownload}>
+                <Download size={16} /> Exporter PNG
+              </button>
+            </div>
           </div>
+
+          {/* Multi-post Navigation bar if totalProgramPages > 1 */}
+          {selectedTemplate.id === 'weekend_program' && totalProgramPages > 1 && (
+            <div className="mb-16" style={{
+              display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-card)',
+              padding: '6px 12px', borderRadius: 20, border: '1px solid var(--border)'
+            }}>
+              <button 
+                className="btn btn-secondary btn-sm" 
+                onClick={() => setProgramPage(prev => Math.max(0, prev - 1))}
+                disabled={safeProgramPage === 0}
+                style={{ padding: 4 }}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--primary-light)' }}>
+                Partie {safeProgramPage + 1} sur {totalProgramPages} ({visibleProgramMatches.length} matchs)
+              </span>
+              <button 
+                className="btn btn-secondary btn-sm" 
+                onClick={() => setProgramPage(prev => Math.min(totalProgramPages - 1, prev + 1))}
+                disabled={safeProgramPage === totalProgramPages - 1}
+                style={{ padding: 4 }}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
 
           <div style={{
             width: selectedFormat.width,
