@@ -2,7 +2,8 @@ import React, { useState, useRef } from 'react';
 import { 
   Download, Type, Palette, Image as ImageIcon, RefreshCw, 
   Sparkles, Trophy, Calendar, Users, Share2, Copy, Check, Sliders, Layers, 
-  Swords, Megaphone, Plus, Trash2, Zap, LayoutGrid, Paintbrush, ArrowUpRight, ChevronLeft, ChevronRight
+  Swords, Megaphone, Plus, Trash2, Zap, LayoutGrid, Paintbrush, ArrowUpRight, ChevronLeft, ChevronRight,
+  AlignLeft, AlignCenter, AlignRight, ImageOff, Shield
 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { getInitials } from '../hooks/useLocalStorage';
@@ -23,13 +24,16 @@ const FORMATS = [
   { id: 'banner', label: 'Bannière (16:9)', icon: 'ph:desktop-bold', ratio: '16 / 9', width: 500, height: 281 },
 ];
 
-// Layout Styles
+// 8 Structural Layout Variants!
 const LAYOUT_STYLES = [
-  { id: 'streetwear', name: 'Streetwear Bold (Pavés Heavy)', icon: 'ph:layout-bold' },
-  { id: 'cyber', name: 'Cyber Neon (Contours Fluo)', icon: 'ph:lightning-bold' },
-  { id: 'college', name: 'Heritage College (Split Rétro)', icon: 'ph:student-bold' },
-  { id: 'editorial', name: 'Editorial Magazine (Titre XL)', icon: 'ph:newspaper-bold' },
-  { id: 'ticket', name: 'Ticket Pass Match (Vintage)', icon: 'ph:ticket-bold' },
+  { id: 'streetwear', name: 'Streetwear Centré (Pavés Heavy)', desc: 'Disposition centrée classique avec pavés contrastés' },
+  { id: 'split_left_text', name: 'Split 50/50 : Texte à Gauche / Photo à Droite', desc: 'Texte & score à gauche, photo du joueur/match à droite' },
+  { id: 'split_right_text', name: 'Split 50/50 : Photo à Gauche / Texte à Droite', desc: 'Photo à gauche, informations & score à droite' },
+  { id: 'no_image_clean', name: 'Minimalist Clean (Sans Photo)', desc: 'Design typographique épuré 100% texte sans image' },
+  { id: 'cyber', name: 'Cyber Neon (Contours & Cadres Fluo)', desc: 'Cadres futustistes et bordures lumineuses' },
+  { id: 'editorial', name: 'Editorial Magazine (Titre Géant en Fond)', desc: 'Couverture de magazine avec titre en arrière-plan' },
+  { id: 'banner_top', name: 'Split Horizontal (Photo Haut / Texte Bas)', desc: 'Photo sur la moitié haute, pavé d\'infos en bas' },
+  { id: 'ticket', name: 'Ticket Match Vintage (Pass Gymnase)', desc: 'Style billet de match perforé vintage' },
 ];
 
 // Fonts
@@ -65,12 +69,15 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   const [selectedFont, setSelectedFont] = useState(FONTS[0]);
   const [selectedBgUrl, setSelectedBgUrl] = useState(BUILTIN_TEXTURES[0].url);
   const [accentColor, setAccentColor] = useState('#168E56');
-  const [homeColor, setHomeColor] = useState('#10B981'); // Distinct Home Color
-  const [awayColor, setAwayColor] = useState('#F59E0B'); // Distinct Away Color
+  const [homeColor, setHomeColor] = useState('#10B981');
+  const [awayColor, setAwayColor] = useState('#F59E0B');
   const [grainOverlay, setGrainOverlay] = useState(true);
-  const [photoFilter, setPhotoFilter] = useState('none');
+  const [showPhoto, setShowPhoto] = useState(true);
+  const [showLogo, setShowLogo] = useState(true);
+  const [selectedLogoUrl, setSelectedLogoUrl] = useState('');
+  const [textAlign, setTextAlign] = useState('center'); // 'left' | 'center' | 'right'
   const [copiedCaption, setCopiedCaption] = useState(false);
-  const [programPage, setProgramPage] = useState(0); // Pagination for multi-post program
+  const [programPage, setProgramPage] = useState(0);
 
   // Full customizable configuration
   const [config, setConfig] = useState({
@@ -125,9 +132,10 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
   const canvasRef = useRef(null);
   const customBackgrounds = customAssets.filter(a => a.type === 'background');
+  const customLogos = customAssets.filter(a => a.type === 'logo');
   const selectedMember = members.find(m => m.id === config.selectedMemberId);
 
-  // Match pagination logic (3 or 4 matches per post depending on format)
+  // Match pagination logic
   const matchesPerPage = selectedFormat.id === 'banner' ? 3 : 4;
   const totalProgramPages = Math.ceil(config.weekendMatches.length / matchesPerPage) || 1;
   const safeProgramPage = Math.min(programPage, totalProgramPages - 1);
@@ -136,7 +144,6 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     (safeProgramPage + 1) * matchesPerPage
   );
 
-  // Dynamic match add/remove/edit for Weekend Program
   const handleAddMatch = () => {
     const newM = {
       id: `m-${Date.now()}`,
@@ -161,7 +168,6 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     }));
   };
 
-  // Import matches automatically from Calendar events
   const handleImportCalendarEvents = () => {
     if (!events || events.length === 0) {
       alert('Aucun événement enregistré dans le calendrier pour le moment.');
@@ -180,7 +186,6 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     setProgramPage(0);
   };
 
-  // Export PNG function
   const exportSingleCanvas = async (fileName) => {
     const node = canvasRef.current;
     if (!node) return;
@@ -201,17 +206,14 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     }
   };
 
-  // Download all pages sequentially for multi-post program
   const handleDownloadAllPages = async () => {
     for (let p = 0; p < totalProgramPages; p++) {
       setProgramPage(p);
-      // Wait for React DOM update
       await new Promise(r => setTimeout(r, 400));
       await exportSingleCanvas(`bcsn-programme-partie-${p + 1}-sur-${totalProgramPages}.png`);
     }
   };
 
-  // Generate Clean Instagram Caption
   const generateCaption = () => {
     const hashtag = "#BCSN #BasketClubSaoneNivernais #Basketball #StreetwearBasket #FFBB";
     switch (selectedTemplate.id) {
@@ -258,18 +260,22 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     setTimeout(() => setCopiedCaption(false), 2500);
   };
 
-  // Render Visual Canvas Output
+  // Render Visual Canvas Output with full structural layout flexibility!
   const renderVisualContent = () => {
     const isStory = selectedFormat.id === 'story';
     const isBanner = selectedFormat.id === 'banner';
     const isCyber = selectedLayout.id === 'cyber';
     const isCollege = selectedLayout.id === 'college';
     const isTicket = selectedLayout.id === 'ticket';
+    const isSplitLeft = selectedLayout.id === 'split_left_text';
+    const isSplitRight = selectedLayout.id === 'split_right_text';
+    const isNoImage = selectedLayout.id === 'no_image_clean' || !showPhoto;
 
     const visualStyle = {
       width: '100%',
       height: '100%',
-      backgroundImage: `url(${selectedBgUrl})`,
+      backgroundImage: isNoImage ? 'none' : `url(${selectedBgUrl})`,
+      backgroundColor: isNoImage ? '#0B0D12' : '#000000',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       color: '#FFFFFF',
@@ -286,13 +292,15 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     return (
       <div style={visualStyle}>
         {/* Dark Vignette Layer */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: isCollege ? 'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.9) 100%)' :
-                      isCyber ? 'radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.92) 100%)' :
-                      'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%)',
-          pointerEvents: 'none'
-        }} />
+        {!isNoImage && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: isCollege ? 'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.9) 100%)' :
+                        isCyber ? 'radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.92) 100%)' :
+                        'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%)',
+            pointerEvents: 'none'
+          }} />
+        )}
 
         {/* Cyber Neon Borders if selected */}
         {isCyber && (
@@ -302,8 +310,8 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           }} />
         )}
 
-        {/* Vintage Halftone Grain Layer (Only if grainOverlay is true!) */}
-        {grainOverlay && (
+        {/* Vintage Halftone Grain Layer */}
+        {grainOverlay && !isNoImage && (
           <div style={{
             position: 'absolute', inset: 0, opacity: 0.18,
             backgroundImage: 'radial-gradient(#FFF 1px, transparent 1px), radial-gradient(#000 1px, transparent 1px)',
@@ -312,20 +320,26 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           }} />
         )}
 
-        {/* Header Branding */}
+        {/* Header Branding with Official Logo Support */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           position: 'relative', zIndex: 2, borderBottom: `2px solid ${isCyber ? accentColor : 'rgba(255,255,255,0.25)'}`,
           paddingBottom: 8, gap: 10
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 8, background: accentColor,
-              border: '2px solid #FFF', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.5)', flexShrink: 0
-            }}>
-              <Icon icon="ph:basketball-bold" width="20" height="20" color="#FFF" />
-            </div>
+            {showLogo && (
+              <div style={{
+                width: 38, height: 38, borderRadius: 8, background: selectedLogoUrl ? 'transparent' : accentColor,
+                border: selectedLogoUrl ? 'none' : '2px solid #FFF', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.5)', flexShrink: 0, overflow: 'hidden'
+              }}>
+                {selectedLogoUrl ? (
+                  <img src={selectedLogoUrl} alt="Logo BCSN" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                ) : (
+                  <Icon icon="ph:basketball-bold" width="22" height="22" color="#FFF" />
+                )}
+              </div>
+            )}
             <div style={{ overflow: 'hidden' }}>
               <div style={{ fontSize: 14, fontWeight: 900, letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: selectedFont.fontFamily, whiteSpace: 'nowrap' }}>
                 {config.headerTitle || 'BCSN BASKET'}
@@ -359,12 +373,17 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           </div>
         </div>
 
-        {/* Center Main Content */}
-        <div style={{ position: 'relative', zIndex: 2, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', margin: '10px 0' }}>
+        {/* Center Main Content (Supports Split Left/Right & Custom Alignment) */}
+        <div style={{
+          position: 'relative', zIndex: 2, flex: 1, display: 'flex',
+          flexDirection: isSplitLeft || isSplitRight ? 'row' : 'column',
+          justifyContent: 'center', alignItems: 'center', margin: '10px 0', gap: 16,
+          textAlign: textAlign
+        }}>
           
           {/* TEMPLATE 1: RESULTAT */}
           {selectedTemplate.id === 'result' && (
-            <div style={{ textAlign: 'center', width: '100%' }}>
+            <div style={{ textAlign: textAlign, width: '100%' }}>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: isStory ? 18 : 14, letterSpacing: 3, textTransform: 'uppercase',
                 fontWeight: 900, background: config.isVictory ? accentColor : '#EF4444',
@@ -416,7 +435,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
           {/* TEMPLATE 2: MATCH DAY */}
           {selectedTemplate.id === 'match_day' && (
-            <div style={{ textAlign: 'center', width: '100%' }}>
+            <div style={{ textAlign: textAlign, width: '100%' }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: isStory ? 16 : 12, letterSpacing: 3, textTransform: 'uppercase', color: accentColor, marginBottom: 8, fontWeight: 900 }}>
                 <Icon icon="ph:swords-bold" width="16" height="16" />
                 {config.competition || 'JOUR DE MATCH'}
@@ -446,61 +465,70 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             </div>
           )}
 
-          {/* TEMPLATE 3: PLAYER MVP */}
+          {/* TEMPLATE 3: PLAYER MVP (SUPPORTS SPLIT LEFT / RIGHT REORDERING) */}
           {selectedTemplate.id === 'player_mvp' && (
-            <div style={{ textAlign: 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: accentColor, fontWeight: 900, marginBottom: 8 }}>
-                <Icon icon="ph:star-bold" width="15" height="15" />
-                MVP DU MATCH
-              </div>
-
+            <div style={{
+              width: '100%', display: 'flex',
+              flexDirection: isSplitLeft ? 'row' : isSplitRight ? 'row-reverse' : 'column',
+              alignItems: 'center', justifyContent: 'center', gap: 16
+            }}>
               {/* Player Photo */}
-              <div style={{
-                width: isStory ? 120 : 90, height: isStory ? 120 : 90, borderRadius: isTicket ? 0 : 14,
-                border: `3px solid ${accentColor}`, overflow: 'hidden', boxShadow: '5px 5px 0px #000',
-                background: '#161921', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: 10, filter: photoFilter === 'duotone' ? 'grayscale(100%) contrast(120%)' : 'none'
-              }}>
-                {selectedMember && selectedMember.photo ? (
-                  <img src={selectedMember.photo} alt={selectedMember.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ fontSize: 26, fontWeight: 900, color: accentColor }}>
-                    {selectedMember ? getInitials(selectedMember.name) : 'BCSN'}
+              {!isNoImage && (
+                <div style={{
+                  width: isStory ? 130 : 100, height: isStory ? 130 : 100, borderRadius: isTicket ? 0 : 14,
+                  border: `3px solid ${accentColor}`, overflow: 'hidden', boxShadow: '5px 5px 0px #000',
+                  background: '#161921', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  {selectedMember && selectedMember.photo ? (
+                    <img src={selectedMember.photo} alt={selectedMember.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ fontSize: 28, fontWeight: 900, color: accentColor }}>
+                      {selectedMember ? getInitials(selectedMember.name) : 'BCSN'}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Player Info & Stats */}
+              <div style={{ textAlign: isSplitLeft ? 'left' : isSplitRight ? 'right' : textAlign, flex: 1 }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: accentColor, fontWeight: 900, marginBottom: 4 }}>
+                  <Icon icon="ph:star-bold" width="15" height="15" />
+                  MVP DU MATCH
+                </div>
+
+                <div style={{ fontSize: isStory ? 24 : 18, fontWeight: 900, textTransform: 'uppercase', textShadow: '2px 2px 0px #000' }}>
+                  {selectedMember ? selectedMember.name : 'Nom du Joueur'}
+                  <span style={{ fontSize: 14, color: accentColor, marginLeft: 6 }}>#{config.playerNumber}</span>
+                </div>
+                <div style={{ fontSize: 10, opacity: 0.8, fontFamily: "'Inter', sans-serif", letterSpacing: 1, marginBottom: 8 }}>{config.playerPosition}</div>
+
+                {/* 4 Stats Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, width: '100%', maxWidth: 360 }}>
+                  <div style={{ background: '#000', padding: '4px 6px', borderRadius: 4, border: '1px solid #FFF', textAlign: 'center' }}>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: accentColor }}>{config.stat1Value}</div>
+                    <div style={{ fontSize: 8, opacity: 0.8, fontFamily: "'Inter', sans-serif" }}>{config.stat1Label}</div>
                   </div>
-                )}
-              </div>
-
-              <div style={{ fontSize: isStory ? 24 : 18, fontWeight: 900, textTransform: 'uppercase', textShadow: '2px 2px 0px #000' }}>
-                {selectedMember ? selectedMember.name : 'Nom du Joueur'}
-                <span style={{ fontSize: 14, color: accentColor, marginLeft: 6 }}>#{config.playerNumber}</span>
-              </div>
-              <div style={{ fontSize: 10, opacity: 0.8, fontFamily: "'Inter', sans-serif", letterSpacing: 1 }}>{config.playerPosition}</div>
-
-              {/* 4 Stats Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginTop: 10, width: '100%', maxWidth: 360 }}>
-                <div style={{ background: '#000', padding: '4px 6px', borderRadius: 4, border: '1px solid #FFF', textAlign: 'center' }}>
-                  <div style={{ fontSize: 16, fontWeight: 900, color: accentColor }}>{config.stat1Value}</div>
-                  <div style={{ fontSize: 8, opacity: 0.8, fontFamily: "'Inter', sans-serif" }}>{config.stat1Label}</div>
-                </div>
-                <div style={{ background: '#000', padding: '4px 6px', borderRadius: 4, border: '1px solid #FFF', textAlign: 'center' }}>
-                  <div style={{ fontSize: 16, fontWeight: 900, color: accentColor }}>{config.stat2Value}</div>
-                  <div style={{ fontSize: 8, opacity: 0.8, fontFamily: "'Inter', sans-serif" }}>{config.stat2Label}</div>
-                </div>
-                <div style={{ background: '#000', padding: '4px 6px', borderRadius: 4, border: '1px solid #FFF', textAlign: 'center' }}>
-                  <div style={{ fontSize: 16, fontWeight: 900, color: accentColor }}>{config.stat3Value}</div>
-                  <div style={{ fontSize: 8, opacity: 0.8, fontFamily: "'Inter', sans-serif" }}>{config.stat3Label}</div>
-                </div>
-                <div style={{ background: '#000', padding: '4px 6px', borderRadius: 4, border: '1px solid #FFF', textAlign: 'center' }}>
-                  <div style={{ fontSize: 16, fontWeight: 900, color: accentColor }}>{config.stat4Value}</div>
-                  <div style={{ fontSize: 8, opacity: 0.8, fontFamily: "'Inter', sans-serif" }}>{config.stat4Label}</div>
+                  <div style={{ background: '#000', padding: '4px 6px', borderRadius: 4, border: '1px solid #FFF', textAlign: 'center' }}>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: accentColor }}>{config.stat2Value}</div>
+                    <div style={{ fontSize: 8, opacity: 0.8, fontFamily: "'Inter', sans-serif" }}>{config.stat2Label}</div>
+                  </div>
+                  <div style={{ background: '#000', padding: '4px 6px', borderRadius: 4, border: '1px solid #FFF', textAlign: 'center' }}>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: accentColor }}>{config.stat3Value}</div>
+                    <div style={{ fontSize: 8, opacity: 0.8, fontFamily: "'Inter', sans-serif" }}>{config.stat3Label}</div>
+                  </div>
+                  <div style={{ background: '#000', padding: '4px 6px', borderRadius: 4, border: '1px solid #FFF', textAlign: 'center' }}>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: accentColor }}>{config.stat4Value}</div>
+                    <div style={{ fontSize: 8, opacity: 0.8, fontFamily: "'Inter', sans-serif" }}>{config.stat4Label}</div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TEMPLATE 4: DYNAMIC WEEKEND PROGRAM (WITH HOME/AWAY DISTINCT COLORS) */}
+          {/* TEMPLATE 4: DYNAMIC WEEKEND PROGRAM */}
           {selectedTemplate.id === 'weekend_program' && (
-            <div style={{ width: '100%', textAlign: 'center' }}>
+            <div style={{ width: '100%', textAlign: textAlign }}>
               <div style={{ fontSize: isStory ? 18 : 13, letterSpacing: 2, textTransform: 'uppercase', color: accentColor, marginBottom: 2, fontWeight: 900 }}>
                 {config.programTitle}
               </div>
@@ -508,7 +536,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                 {config.programSubtitle}
               </div>
 
-              {/* Dynamic Matches List for Current Page */}
+              {/* Dynamic Matches List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
                 {visibleProgramMatches.map((m) => {
                   const isHome = (m.lieu || '').toUpperCase().includes('DOM');
@@ -545,7 +573,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
           {/* TEMPLATE 5: ANNOUNCEMENT */}
           {selectedTemplate.id === 'announcement' && (
-            <div style={{ textAlign: 'center', padding: '0 12px' }}>
+            <div style={{ textAlign: textAlign, padding: '0 12px' }}>
               <div style={{ fontSize: isStory ? 28 : 22, fontWeight: 900, textTransform: 'uppercase', color: accentColor, marginBottom: 8, textShadow: '3px 3px 0px #000' }}>
                 {config.customTitle || 'COMMUNIQUÉ DU CLUB'}
               </div>
@@ -603,8 +631,74 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
         <div className="card">
           <h3 className="card-title mb-16" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon icon="ph:sliders-horizontal-bold" width="20" height="20" color="var(--primary-light)" />
-            Personnalisation Totale
+            Personnalisation Totale & Layouts
           </h3>
+
+          {/* Structural Layout Preset Selector */}
+          <div className="input-group mb-16">
+            <label className="input-label">Disposition / Layout Structurel (8 Variantes)</label>
+            <select className="input select" value={selectedLayout.id} onChange={e => setSelectedLayout(LAYOUT_STYLES.find(l => l.id === e.target.value))}>
+              {LAYOUT_STYLES.map(l => (
+                <option key={l.id} value={l.id}>{l.name}</option>
+              ))}
+            </select>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+              {selectedLayout.desc}
+            </div>
+          </div>
+
+          {/* Logo Club Configuration */}
+          <div className="input-group mb-16" style={{ background: 'var(--bg-card)', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Shield size={16} color="var(--primary-light)" />
+                Afficher le Logo du Club BCSN
+              </span>
+              <input 
+                type="checkbox" 
+                checked={showLogo} 
+                onChange={e => setShowLogo(e.target.checked)} 
+                style={{ width: 20, height: 20, accentColor: '#168E56', cursor: 'pointer' }} 
+              />
+            </div>
+            {showLogo && (
+              <div style={{ marginTop: 8 }}>
+                <label className="input-label" style={{ fontSize: 11 }}>Source du Logo</label>
+                <select className="input select" value={selectedLogoUrl} onChange={e => setSelectedLogoUrl(e.target.value)}>
+                  <option value="">-- Logo SVG Basket Officiel BCSN --</option>
+                  {customLogos.map(l => (
+                    <option key={l.id} value={l.url}>{l.name} (Médiathèque)</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          {/* Text Alignment & Image Toggle */}
+          <div className="grid-2 mb-16">
+            <div className="input-group">
+              <label className="input-label">Alignement des Textes</label>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button className={`btn btn-sm ${textAlign === 'left' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTextAlign('left')} style={{ flex: 1 }}>
+                  <AlignLeft size={14} />
+                </button>
+                <button className={`btn btn-sm ${textAlign === 'center' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTextAlign('center')} style={{ flex: 1 }}>
+                  <AlignCenter size={14} />
+                </button>
+                <button className={`btn btn-sm ${textAlign === 'right' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTextAlign('right')} style={{ flex: 1 }}>
+                  <AlignRight size={14} />
+                </button>
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Visibilité Image / Photo</label>
+              <button className={`btn btn-sm ${showPhoto ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setShowPhoto(!showPhoto)} style={{ width: '100%', justifyContent: 'center' }}>
+                {showPhoto ? <ImageIcon size={14} /> : <ImageOff size={14} />}
+                {showPhoto ? 'Avec Image' : 'Sans Image (Pur Texte)'}
+              </button>
+            </div>
+          </div>
 
           {/* Grain Toggle Checkbox */}
           <div className="input-group mb-16" style={{ background: 'var(--bg-card)', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)' }}>
@@ -640,14 +734,6 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             </div>
           </div>
 
-          {/* Layout Variant Selector */}
-          <div className="input-group mb-16">
-            <label className="input-label">Disposition / Style de Layout</label>
-            <select className="input select" value={selectedLayout.id} onChange={e => setSelectedLayout(LAYOUT_STYLES.find(l => l.id === e.target.value))}>
-              {LAYOUT_STYLES.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-            </select>
-          </div>
-
           {/* Color Accent Picker */}
           <div className="input-group mb-16">
             <label className="input-label">Couleur d'Accent Principale</label>
@@ -676,7 +762,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
           {/* Distinct Home & Away Match Colors */}
           <div className="input-group mb-16">
-            <label className="input-label">Couleurs Distinctes Matchs (Domicile vs Extérieur)</label>
+            <label className="input-label">Couleurs Matchs (Domicile vs Extérieur)</label>
             <div className="grid-2">
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-card)', padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)' }}>
                 <input type="color" value={homeColor} onChange={e => setHomeColor(e.target.value)} style={{ width: 26, height: 26, border: 'none', cursor: 'pointer' }} />
