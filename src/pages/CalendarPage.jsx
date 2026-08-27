@@ -242,68 +242,67 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
   const totalEvents = events.filter(e => e.type !== 'match').length;
 
   return (
-    <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ height: 'calc(100vh - 105px)', display: 'flex', flexDirection: 'column', gap: 10, overflow: 'hidden' }}>
       
-      {/* HEADER BANNER & BDD ACTIONS */}
-      <div className="card mb-16" style={{ padding: '16px 20px', background: 'var(--bg-card)' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      {/* HEADER BANNER & BDD ACTIONS (FIXED TOP) */}
+      <div className="card" style={{ padding: '10px 16px', background: 'var(--bg-card)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: cloudActive ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)', color: cloudActive ? '#10B981' : '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Database size={20} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: cloudActive ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)', color: cloudActive ? '#10B981' : '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Database size={16} />
             </div>
             <div>
-              <h2 style={{ fontSize: 16, fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                 Planning & Calendrier BDD
-                <span className={`badge ${cloudActive ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: 10 }}>
+                <span className={`badge ${cloudActive ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: 9 }}>
                   {cloudActive ? '● BDD Firestore' : 'Local'}
                 </span>
               </h2>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
                 <strong style={{ color: 'var(--text)' }}>{events.length} entrées</strong> ({totalMatches} Matchs · {totalEvents} Événements Club)
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <button 
               className="btn btn-secondary btn-sm"
               onClick={handleSyncToDatabase}
               disabled={isSyncing}
-              style={{ background: cloudActive ? 'rgba(16,185,129,0.12)' : 'rgba(59,130,246,0.12)', color: cloudActive ? '#10B981' : '#3B82F6', borderColor: 'currentColor' }}
+              style={{ padding: '4px 10px', fontSize: 11, background: cloudActive ? 'rgba(16,185,129,0.12)' : 'rgba(59,130,246,0.12)', color: cloudActive ? '#10B981' : '#3B82F6', borderColor: 'currentColor' }}
             >
-              <RefreshCw size={14} className={isSyncing ? 'spin' : ''} />
-              {cloudActive ? '⚡ Synchro BDD Firestore' : '🔄 Synchroniser (133)'}
+              <RefreshCw size={13} className={isSyncing ? 'spin' : ''} />
+              {cloudActive ? '⚡ Synchro BDD' : '🔄 Synchroniser'}
             </button>
 
-            <button className="btn btn-secondary btn-sm" onClick={handleExportCSV}>
-              <FileSpreadsheet size={14} /> CSV / Excel
+            <button className="btn btn-secondary btn-sm" onClick={handleExportCSV} style={{ padding: '4px 10px', fontSize: 11 }}>
+              <FileSpreadsheet size={13} /> CSV / Excel
             </button>
 
-            <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>
-              <Plus size={14} /> Ajouter
+            <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)} style={{ padding: '4px 10px', fontSize: 11 }}>
+              <Plus size={13} /> Ajouter
             </button>
           </div>
         </div>
 
         {syncStatus && (
-          <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 6, background: 'rgba(16,185,129,0.15)', color: '#10B981', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <CheckCircle size={15} />
+          <div style={{ marginTop: 6, padding: '4px 10px', borderRadius: 4, background: 'rgba(16,185,129,0.15)', color: '#10B981', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CheckCircle size={13} />
             {syncStatus}
           </div>
         )}
       </div>
 
-      {/* COMPACT TOOLBAR FILTER BAR (NO LONGER FULL WIDTH STRETCHING) */}
-      <div className="card mb-16" style={{ padding: '12px 16px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
+      {/* COMPACT FILTER BAR (FIXED TOP) */}
+      <div className="card" style={{ padding: '8px 14px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
           
-          {/* Search Input */}
-          <div style={{ flex: '1 1 240px', minWidth: 200, position: 'relative' }}>
-            <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <div style={{ flex: '1 1 200px', minWidth: 160, position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input 
               className="input" 
-              style={{ paddingLeft: 34, height: 36, fontSize: 13 }}
+              style={{ paddingLeft: 32, height: 32, fontSize: 12 }}
               placeholder="Rechercher (équipe, lieu, etc)..." 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
@@ -313,14 +312,13 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                 onClick={() => setSearchQuery('')}
                 style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
               >
-                <X size={13} />
+                <X size={12} />
               </button>
             )}
           </div>
 
-          {/* Type Filter Select */}
-          <div style={{ flex: '0 1 180px', minWidth: 150 }}>
-            <select className="input select" style={{ height: 36, fontSize: 13 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+          <div style={{ flex: '0 1 160px', minWidth: 130 }}>
+            <select className="input select" style={{ height: 32, fontSize: 12 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
               <option value="all">Tous les types ({events.length})</option>
               <option value="match">Matchs ({totalMatches})</option>
               <option value="evenement">Événements Club</option>
@@ -329,9 +327,8 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
             </select>
           </div>
 
-          {/* Category Filter Select */}
-          <div style={{ flex: '0 1 180px', minWidth: 150 }}>
-            <select className="input select" style={{ height: 36, fontSize: 13 }} value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
+          <div style={{ flex: '0 1 160px', minWidth: 130 }}>
+            <select className="input select" style={{ height: 32, fontSize: 12 }} value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
               <option value="all">Toutes les catégories</option>
               <option value="Seniors">Séniors (M & F)</option>
               <option value="Juniors">Juniors / U18</option>
@@ -344,7 +341,7 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
             <button 
               className="btn btn-ghost btn-sm"
               onClick={() => { setFilterType('all'); setFilterCategory('all'); setSearchQuery(''); }}
-              style={{ fontSize: 12, height: 36 }}
+              style={{ fontSize: 11, height: 32, padding: '0 8px' }}
             >
               Effacer filtres
             </button>
@@ -353,22 +350,22 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
         </div>
       </div>
 
-      {/* MAIN TWO-COLUMN GRID: STRICT MONTH GRID (LEFT) & DAY FOCUS (RIGHT) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 0.75fr)', gap: 16, alignItems: 'start' }}>
+      {/* MAIN TWO-COLUMN FULL HEIGHT CONTAINER (NO PAGE SCROLL) */}
+      <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 0.75fr)', gap: 12 }}>
         
-        {/* LEFT COLUMN: PERFECTLY STRAIGHT 7-COLUMN MONTH GRID */}
-        <div className="card" style={{ padding: 16 }}>
+        {/* LEFT COLUMN: FULL HEIGHT MONTH GRID */}
+        <div className="card" style={{ height: '100%', minHeight: 0, padding: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           
           {/* Header Month Control */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button className="btn-icon" style={{ width: 32, height: 32 }} onClick={prevMonth} title="Mois précédent"><ChevronLeft size={16} /></button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={prevMonth} title="Mois précédent"><ChevronLeft size={15} /></button>
               
               <select 
                 className="select" 
                 value={`${viewYear}-${viewMonth}`} 
                 onChange={handleMonthSelect}
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 15, border: 'none', background: 'transparent', padding: '2px 4px', cursor: 'pointer' }}
+                style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 14, border: 'none', background: 'transparent', padding: '2px 4px', cursor: 'pointer' }}
               >
                 <option value="2026-7">Août 2026</option>
                 <option value="2026-8">Septembre 2026</option>
@@ -382,11 +379,11 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                 <option value="2027-4">Mai 2027</option>
               </select>
 
-              <button className="btn-icon" style={{ width: 32, height: 32 }} onClick={nextMonth} title="Mois suivant"><ChevronRight size={16} /></button>
+              <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={nextMonth} title="Mois suivant"><ChevronRight size={15} /></button>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span className="badge badge-neutral" style={{ fontSize: 10 }}>{monthEventsCount} événements</span>
+              <span className="badge badge-neutral" style={{ fontSize: 9 }}>{monthEventsCount} événements</span>
               <button 
                 className="btn btn-ghost btn-sm"
                 onClick={() => {
@@ -396,17 +393,20 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                   setViewMonth(nowM);
                   setSelectedDate('2026-09-12');
                 }}
-                style={{ fontSize: 11, padding: '2px 6px' }}
+                style={{ fontSize: 10, padding: '2px 6px' }}
               >
                 Aujourd'hui
               </button>
             </div>
           </div>
 
-          {/* STRICT EQUAL HEIGHT & WIDTH 7-COLUMN GRID */}
+          {/* PROPORTIONAL FLEX 7-COLUMN GRID FILLING FULL HEIGHT */}
           <div style={{ 
+            flex: 1, 
+            minHeight: 0,
             display: 'grid', 
             gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', 
+            gridTemplateRows: '24px repeat(6, minmax(0, 1fr))',
             gap: 4 
           }}>
             
@@ -416,10 +416,12 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                 key={d} 
                 style={{ 
                   textAlign: 'center', 
-                  fontSize: 11, 
+                  fontSize: 10.5, 
                   fontWeight: 700, 
                   color: index >= 5 ? 'var(--accent)' : 'var(--text-muted)', 
-                  padding: '6px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   textTransform: 'uppercase'
                 }}
               >
@@ -427,7 +429,7 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
               </div>
             ))}
 
-            {/* 42 Calendar Cells (Strictly Fixed Height = 68px for perfect alignment) */}
+            {/* 42 Calendar Cells Flexibly Scaling to Fill Box */}
             {calendarDays.map((dayInfo, idx) => {
               const dateStr = formatDateISO(dayInfo.year, dayInfo.month, dayInfo.day);
               const dayEvts = eventsByDate[dateStr] || [];
@@ -440,15 +442,15 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                   key={idx}
                   onClick={() => handleDayClick(dayInfo)}
                   style={{
-                    height: 68,
+                    height: '100%',
                     boxSizing: 'border-box',
                     overflow: 'hidden',
-                    borderRadius: 8,
-                    padding: '4px 6px',
+                    borderRadius: 6,
+                    padding: '3px 5px',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
-                    justify: 'space-between',
+                    justifyContent: 'space-between',
                     background: isSelected 
                       ? 'rgba(59,130,246,0.18)' 
                       : (isWeekend && !dayInfo.isOtherMonth ? 'rgba(255,255,255,0.025)' : 'var(--bg-card)'),
@@ -459,10 +461,9 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                     transition: 'all 0.12s ease'
                   }}
                 >
-                  {/* Top row: Day Number & Event Counter */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ 
-                      fontSize: 11.5, 
+                      fontSize: 11, 
                       fontWeight: isSelected || isToday ? 800 : 600,
                       color: isSelected ? '#3B82F6' : (isToday ? 'var(--primary-light)' : 'var(--text)')
                     }}>
@@ -472,9 +473,9 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                     {dayEvts.length > 0 && (
                       <span 
                         style={{ 
-                          fontSize: 9, 
-                          padding: '1px 5px', 
-                          borderRadius: 10,
+                          fontSize: 8.5, 
+                          padding: '1px 4px', 
+                          borderRadius: 8,
                           background: isSelected ? '#3B82F6' : 'rgba(15,109,66,0.3)', 
                           color: isSelected ? 'white' : 'var(--primary-light)',
                           fontWeight: 800,
@@ -486,16 +487,15 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                     )}
                   </div>
 
-                  {/* Bottom row: Compact dot indicators & mini label */}
                   {dayEvts.length > 0 ? (
                     <div>
-                      <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginBottom: 2 }}>
+                      <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', marginBottom: 1 }}>
                         {dayEvts.slice(0, 4).map(e => (
                           <div 
                             key={e.id}
                             style={{ 
-                              width: 6, 
-                              height: 6, 
+                              width: 5, 
+                              height: 5, 
                               borderRadius: '50%', 
                               background: e.color || '#3B82F6' 
                             }} 
@@ -503,18 +503,18 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                         ))}
                       </div>
                       <div style={{ 
-                        fontSize: 8.5, 
+                        fontSize: 8, 
                         fontWeight: 700, 
                         color: 'var(--text-secondary)', 
                         whiteSpace: 'nowrap', 
                         overflow: 'hidden', 
                         textOverflow: 'ellipsis' 
                       }}>
-                        {dayEvts[0].equipe ? dayEvts[0].equipe : dayEvts[0].title.slice(0, 10)}
+                        {dayEvts[0].equipe ? dayEvts[0].equipe : dayEvts[0].title.slice(0, 8)}
                       </div>
                     </div>
                   ) : (
-                    <div style={{ height: 12 }} />
+                    <div style={{ height: 8 }} />
                   )}
                 </div>
               );
@@ -522,17 +522,17 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
           </div>
         </div>
 
-        {/* RIGHT COLUMN: FOCUSED DAY EVENT LIST */}
-        <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', height: 505, boxSizing: 'border-box' }}>
+        {/* RIGHT COLUMN: FOCUSED DAY EVENT LIST (INTERNAL SCROLL ONLY) */}
+        <div className="card" style={{ height: '100%', minHeight: 0, padding: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           
           {/* Day View Header */}
-          <div style={{ paddingBottom: 12, borderBottom: '1px solid var(--border)', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ paddingBottom: 10, borderBottom: '1px solid var(--border)', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
             <div>
-              <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--primary-light)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <CalendarIcon size={12} />
+              <div style={{ fontSize: 9.5, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--primary-light)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <CalendarIcon size={11} />
                 Événements du Jour
               </div>
-              <h3 style={{ fontSize: 16, fontWeight: 800, margin: '2px 0 0 0', fontFamily: 'var(--font-display)' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 800, margin: '1px 0 0 0', fontFamily: 'var(--font-display)' }}>
                 {selectedDate ? formatDateLongFR(selectedDate) : 'Sélectionnez un jour'}
               </h3>
             </div>
@@ -544,27 +544,27 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                   setNewEvent(prev => ({ ...prev, date: selectedDate }));
                   setShowAddModal(true);
                 }}
-                style={{ fontSize: 11, padding: '4px 8px' }}
+                style={{ fontSize: 10, padding: '3px 7px' }}
               >
-                <Plus size={13} /> Ajouter
+                <Plus size={12} /> Ajouter
               </button>
             )}
           </div>
 
-          {/* List of events strictly for selectedDate */}
+          {/* INNER SCROLLABLE EVENT LIST CONTAINER */}
           {!selectedDate ? (
-            <div className="empty-state" style={{ padding: '60px 20px' }}>
-              <CalendarIcon size={36} style={{ opacity: 0.3, marginBottom: 8 }} />
-              <p style={{ fontWeight: 600, fontSize: 13 }}>Cliquez sur une case du calendrier</p>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+            <div className="empty-state" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+              <CalendarIcon size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+              <p style={{ fontWeight: 600, fontSize: 12 }}>Cliquez sur une case du calendrier</p>
+              <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2 }}>
                 Sélectionnez une date pour voir les matchs programmés.
               </p>
             </div>
           ) : selectedDayEvents.length === 0 ? (
-            <div className="empty-state" style={{ padding: '50px 16px' }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>☕</div>
-              <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Aucun événement ce jour-là</p>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, marginBottom: 14 }}>
+            <div className="empty-state" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+              <div style={{ fontSize: 24, marginBottom: 4 }}>☕</div>
+              <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>Aucun événement ce jour-là</p>
+              <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2, marginBottom: 10 }}>
                 Pas de match ni de réunion le {formatDateLongFR(selectedDate)}.
               </p>
               <button 
@@ -573,14 +573,15 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                   setNewEvent(prev => ({ ...prev, date: selectedDate }));
                   setShowAddModal(true);
                 }}
+                style={{ fontSize: 11, padding: '4px 10px' }}
               >
-                <Plus size={13} /> Ajouter pour cette date
+                <Plus size={12} /> Ajouter pour cette date
               </button>
             </div>
           ) : (
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingRight: 4, maxHeight: 370 }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
               
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', paddingBottom: 2 }}>
                 <span>{selectedDayEvents.length} événement(s)</span>
                 <span>{selectedDayEvents.filter(e => e.type === 'match').length} Match(s)</span>
               </div>
@@ -594,72 +595,68 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                     key={evt.id}
                     className="card"
                     style={{ 
-                      padding: 12, 
+                      padding: 10, 
                       background: 'var(--bg-elevated)', 
                       borderColor: 'var(--border)',
-                      borderLeft: `4px solid ${evt.color || '#3B82F6'}`
+                      borderLeft: `4px solid ${evt.color || '#3B82F6'}`,
+                      flexShrink: 0
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                       
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        
-                        {/* Badges row */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
-                          <span className="badge" style={{ background: evt.color ? evt.color + '22' : 'rgba(59,130,246,0.15)', color: evt.color || '#3B82F6', fontSize: 10, fontWeight: 800 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3, flexWrap: 'wrap' }}>
+                          <span className="badge" style={{ background: evt.color ? evt.color + '22' : 'rgba(59,130,246,0.15)', color: evt.color || '#3B82F6', fontSize: 9.5, fontWeight: 800, padding: '1px 6px' }}>
                             {evt.typeLabel || evt.type}
                           </span>
 
                           {evt.category && (
-                            <span className="badge badge-neutral" style={{ fontSize: 9.5 }}>
+                            <span className="badge badge-neutral" style={{ fontSize: 9, padding: '1px 5px' }}>
                               {evt.category}
                             </span>
                           )}
 
                           {isMatch && (
-                            <span className={`badge ${isAway ? 'badge-warning' : 'badge-success'}`} style={{ fontSize: 9.5, fontWeight: 700 }}>
+                            <span className={`badge ${isAway ? 'badge-warning' : 'badge-success'}`} style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px' }}>
                               {isAway ? '✈️ Extérieur' : '🏠 Domicile'}
                             </span>
                           )}
 
                           {evt.note === '*' && (
-                            <span className="badge badge-danger" style={{ fontSize: 9.5 }}>⭐ Note *</span>
+                            <span className="badge badge-danger" style={{ fontSize: 9, padding: '1px 5px' }}>⭐ Note *</span>
                           )}
                         </div>
 
-                        {/* Title */}
-                        <h4 style={{ fontSize: 14, fontWeight: 800, margin: '0 0 4px 0', color: 'var(--text)' }}>
+                        <h4 style={{ fontSize: 13.5, fontWeight: 800, margin: '0 0 3px 0', color: 'var(--text)' }}>
                           {evt.title}
                         </h4>
 
-                        {/* Time & Location */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 11.5, color: 'var(--text-muted)' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 11, color: 'var(--text-muted)' }}>
                           {evt.time && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-secondary)', fontWeight: 600 }}>
-                              <Clock size={12} color="var(--primary-light)" />
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                              <Clock size={11} color="var(--primary-light)" />
                               {evt.time}
                             </span>
                           )}
 
                           {evt.lieu && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <MapPin size={12} color="var(--accent)" />
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                              <MapPin size={11} color="var(--accent)" />
                               {evt.lieu}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      {/* Action buttons */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         {isMatch && onNavigateToVisuals && (
                           <button 
                             className="btn btn-primary btn-sm" 
                             onClick={() => onNavigateToVisuals(evt)}
                             title="Créer un visuel réseaux sociaux"
-                            style={{ fontSize: 10, padding: '3px 7px' }}
+                            style={{ fontSize: 9.5, padding: '2px 6px' }}
                           >
-                            <Palette size={12} /> Visuel
+                            <Palette size={11} /> Visuel
                           </button>
                         )}
 
@@ -667,9 +664,9 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                           className="btn-icon" 
                           onClick={() => handleDeleteEvent(evt.id)} 
                           title="Supprimer"
-                          style={{ color: 'var(--danger)', width: 26, height: 26 }}
+                          style={{ color: 'var(--danger)', width: 24, height: 24 }}
                         >
-                          <X size={13} />
+                          <X size={12} />
                         </button>
                       </div>
 
@@ -680,9 +677,9 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
             </div>
           )}
 
-          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-muted)' }}>
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10.5, color: 'var(--text-muted)', flexShrink: 0 }}>
             <span>Affichage : {filteredEvents.length} entrées</span>
-            <button className="btn btn-ghost btn-sm" onClick={() => setSelectedDate(null)} style={{ fontSize: 11 }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => setSelectedDate(null)} style={{ fontSize: 10, padding: '2px 6px' }}>
               Tout réafficher
             </button>
           </div>
@@ -694,16 +691,16 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
       {/* ADD EVENT MODAL */}
       {showAddModal && (
         <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
             <div className="modal-header">
-              <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Plus size={16} color="var(--primary-light)" />
+              <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Plus size={15} color="var(--primary-light)" />
                 Ajouter un Événement BDD
               </h3>
-              <button className="btn-icon" onClick={() => setShowAddModal(false)}><X size={15} /></button>
+              <button className="btn-icon" onClick={() => setShowAddModal(false)}><X size={14} /></button>
             </div>
             
-            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div className="input-group">
                 <label className="input-label">Intitulé de l'événement / Match</label>
                 <input 
@@ -714,7 +711,7 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <div className="input-group">
                   <label className="input-label">Type</label>
                   <select className="input select" value={newEvent.type} onChange={e => setNewEvent({...newEvent, type: e.target.value})}>
@@ -733,7 +730,7 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <div className="input-group">
                   <label className="input-label">Date</label>
                   <input className="input" type="date" value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} />
@@ -754,7 +751,7 @@ export function CalendarPage({ events = [], onUpdateEvents, onNavigateToVisuals 
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Annuler</button>
               <button className="btn btn-primary" onClick={handleAddEvent}>
-                <Check size={15} /> Enregistrer
+                <Check size={14} /> Enregistrer
               </button>
             </div>
           </div>
