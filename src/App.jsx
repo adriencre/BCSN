@@ -129,7 +129,7 @@ export default function App() {
     switch (activePage) {
       case 'overview': return <OverviewPage members={members} events={events} teams={TEAMS} onSelectMember={setSelectedMemberId} />;
       case 'teams': return <TeamsPage teams={TEAMS} members={members} onNavigateProfile={() => setActivePage('profiles')} onUpdateMembers={setMembers} onSelectMember={setSelectedMemberId} />;
-      case 'visuals': return <VisualsPage teams={TEAMS} />;
+      case 'visuals': return <VisualsPage teams={TEAMS} members={members} events={events} />;
       case 'contacts': return <ContactsPage teams={TEAMS} members={members} onSelectMember={setSelectedMemberId} />;
       case 'calendar': return <CalendarPage events={events} onUpdateEvents={setEvents} />;
       case 'profiles': return <ProfilesPage members={members} onUpdateMembers={setMembers} teams={TEAMS} onSelectMember={setSelectedMemberId} />;
