@@ -44,6 +44,10 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   const [copiedCaption, setCopiedCaption] = useState(false);
 
   const [config, setConfig] = useState({
+    headerTitle: 'BCSN BASKET',
+    headerSubtitle: 'EST. 1978 · SAÔNE & NIVERNAIS',
+    footerLeft: '#BCSN #STREETWEAR',
+    footerRight: 'BASKET CLUB SAÔNE NIVERNAIS',
     teamHome: 'BCSN',
     teamAway: 'US Cosne',
     score1: '78',
@@ -121,7 +125,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     setTimeout(() => setCopiedCaption(false), 2500);
   };
 
-  // Render Visual Canvas Output with SVG icons instead of system emojis
+  // Render Visual Canvas Output
   const renderVisualContent = () => {
     const isStory = selectedFormat.id === 'story';
     const isBanner = selectedFormat.id === 'banner';
@@ -166,27 +170,33 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           position: 'relative', zIndex: 2, borderBottom: '2px solid rgba(255,255,255,0.25)',
-          paddingBottom: 10
+          paddingBottom: 10, gap: 10
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
             <div style={{
               width: 36, height: 36, borderRadius: 8, background: '#168E56',
               border: '2px solid #FFF', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.5)'
+              justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.5)', flexShrink: 0
             }}>
               <Icon icon="ph:basketball-bold" width="22" height="22" color="#FFF" />
             </div>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: 2, textTransform: 'uppercase', fontFamily: selectedFont.fontFamily }}>
-                BCSN BASKET
+            <div style={{ overflow: 'hidden' }}>
+              <div style={{ fontSize: 15, fontWeight: 900, letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: selectedFont.fontFamily, whiteSpace: 'nowrap' }}>
+                {config.headerTitle || 'BCSN BASKET'}
               </div>
-              <div style={{ fontSize: 9, opacity: 0.85, letterSpacing: 1.5, fontFamily: "'Inter', sans-serif" }}>EST. 1978 · SAÔNE & NIVERNAIS</div>
+              <div style={{ fontSize: 8.5, opacity: 0.85, letterSpacing: 1, fontFamily: "'Inter', sans-serif", whiteSpace: 'nowrap' }}>
+                {config.headerSubtitle || 'EST. 1978 · SAÔNE & NIVERNAIS'}
+              </div>
             </div>
           </div>
+          
+          {/* Top Right Team Category Badge (Single line fix) */}
           <div style={{
-            fontSize: 11, fontWeight: 900, padding: '4px 12px', borderRadius: 4,
+            fontSize: (config.category || '').length > 15 ? 9 : 10.5,
+            fontWeight: 900, padding: '5px 12px', borderRadius: 4,
             background: '#168E56', color: '#FFF', border: '1px solid #FFF',
-            textTransform: 'uppercase', letterSpacing: 1, boxShadow: '3px 3px 0px #000'
+            textTransform: 'uppercase', letterSpacing: 0.5, boxShadow: '3px 3px 0px #000',
+            whiteSpace: 'nowrap', flexShrink: 0
           }}>
             {config.category || 'SENIORS'}
           </div>
@@ -359,8 +369,8 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           position: 'relative', zIndex: 2, borderTop: '2px solid rgba(255,255,255,0.25)',
           paddingTop: 8, fontSize: 10, fontFamily: "'Inter', sans-serif", opacity: 0.9
         }}>
-          <div>#BCSN #STREETWEAR</div>
-          <div>BASKET CLUB SAÔNE NIVERNAIS</div>
+          <div>{config.footerLeft || '#BCSN #STREETWEAR'}</div>
+          <div>{config.footerRight || 'BASKET CLUB SAÔNE NIVERNAIS'}</div>
         </div>
       </div>
     );
@@ -459,14 +469,41 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             </div>
           </div>
 
+          {/* CUSTOMIZABLE HEADERS & FOOTERS TEXTS */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginBottom: 16 }}>
+            <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--primary-light)' }}>
+              <Icon icon="ph:text-t-bold" width="16" height="16" />
+              Textes d'Entête & Pied de Visuel
+            </h4>
+            
+            <div className="grid-2 mb-12">
+              <div className="input-group">
+                <label className="input-label">Titre Haut Gauche</label>
+                <input className="input" value={config.headerTitle} onChange={e => setConfig({...config, headerTitle: e.target.value})} placeholder="Ex: BCSN BASKET" />
+              </div>
+              <div className="input-group">
+                <label className="input-label">Sous-Titre Haut Gauche</label>
+                <input className="input" value={config.headerSubtitle} onChange={e => setConfig({...config, headerSubtitle: e.target.value})} placeholder="Ex: EST. 1978 · SAÔNE & NIVERNAIS" />
+              </div>
+            </div>
+
+            <div className="grid-2">
+              <div className="input-group">
+                <label className="input-label">Tag Bas Gauche</label>
+                <input className="input" value={config.footerLeft} onChange={e => setConfig({...config, footerLeft: e.target.value})} placeholder="Ex: #BCSN #STREETWEAR" />
+              </div>
+              <div className="input-group">
+                <label className="input-label">Texte Bas Droite</label>
+                <input className="input" value={config.footerRight} onChange={e => setConfig({...config, footerRight: e.target.value})} placeholder="Ex: BASKET CLUB SAÔNE NIVERNAIS" />
+              </div>
+            </div>
+          </div>
+
           {/* Fields by Template */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
             <div className="input-group">
-              <label className="input-label">Équipe BCSN</label>
-              <select className="input select" value={config.category} onChange={e => setConfig({...config, category: e.target.value})}>
-                {teams.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
-                <option value="Toutes les équipes">Toutes les équipes</option>
-              </select>
+              <label className="input-label">Équipe / Catégorie (Badge Haut Droite)</label>
+              <input className="input" value={config.category} onChange={e => setConfig({...config, category: e.target.value})} placeholder="Ex: SÉNIORS GARÇONS 1" />
             </div>
 
             {selectedTemplate.id === 'result' && (
