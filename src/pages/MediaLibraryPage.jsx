@@ -3,6 +3,7 @@ import {
   FolderOpen, Upload, Trash2, Shield, User, Camera, 
   Image as ImageIcon, Plus, CheckCircle, Sparkles, Layers
 } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { getInitials } from '../hooks/useLocalStorage';
 
 export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCustomAssets }) {
@@ -42,20 +43,6 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
     reader.readAsDataURL(file);
   };
 
-  const handleAddUrlAsset = () => {
-    if (!newAssetUrl.trim()) return;
-    const newAsset = {
-      id: `asset-${Date.now()}`,
-      name: newAssetName.trim() || 'Image importée',
-      type: uploadCategory === 'logos' ? 'logo' : 'background',
-      url: newAssetUrl.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    onUpdateCustomAssets(prev => [newAsset, ...prev]);
-    setNewAssetName('');
-    setNewAssetUrl('');
-  };
-
   const handleDeleteAsset = (id) => {
     if (window.confirm('Supprimer cet asset de la médiathèque ?')) {
       onUpdateCustomAssets(prev => prev.filter(a => a.id !== id));
@@ -68,8 +55,9 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
       <div className="card mb-16" style={{ background: 'linear-gradient(135deg, #168E56 0%, #0D5634 100%)', color: '#FFF' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h2 style={{ fontSize: 22, fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: 4 }}>
-              📁 Médiathèque & Ressources Visuelles BCSN
+            <h2 style={{ fontSize: 22, fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Icon icon="ph:folder-user-bold" width="28" height="28" />
+              Médiathèque & Ressources Visuelles BCSN
             </h2>
             <p style={{ fontSize: 13, opacity: 0.9, maxWidth: 600 }}>
               Centralise tes fonds d'écran texturés (parquet, cuir, streetwear), les photos réelles de tes joueurs/coachs issues des formulaires, et les logos d'équipes pour tes posts réseaux sociaux.
@@ -97,26 +85,34 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
         <button 
           className={`tab ${activeTab === 'backgrounds' ? 'active' : ''}`}
           onClick={() => setActiveTab('backgrounds')}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
         >
-          🖼️ Fonds & Textures ({customBackgrounds.length + 4})
+          <Icon icon="ph:image-bold" width="18" height="18" />
+          Fonds & Textures ({customBackgrounds.length + 4})
         </button>
         <button 
           className={`tab ${activeTab === 'players' ? 'active' : ''}`}
           onClick={() => setActiveTab('players')}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
         >
-          👤 Photos Joueurs Formulaire ({playerMembers.length})
+          <Icon icon="ph:user-bold" width="18" height="18" />
+          Photos Joueurs ({playerMembers.length})
         </button>
         <button 
           className={`tab ${activeTab === 'coaches' ? 'active' : ''}`}
           onClick={() => setActiveTab('coaches')}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
         >
-          👔 Photos Coachs Formulaire ({coachMembers.length})
+          <Icon icon="ph:user-gear-bold" width="18" height="18" />
+          Photos Coachs ({coachMembers.length})
         </button>
         <button 
           className={`tab ${activeTab === 'logos' ? 'active' : ''}`}
           onClick={() => setActiveTab('logos')}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
         >
-          🛡️ Logos d'Équipes ({customLogos.length})
+          <Icon icon="ph:shield-bold" width="18" height="18" />
+          Logos d'Équipes ({customLogos.length})
         </button>
       </div>
 
@@ -129,7 +125,10 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
               <div style={{ height: 140, borderRadius: 12, overflow: 'hidden', marginBottom: 8, background: '#161921' }}>
                 <img src="/artifacts/bcsn_wood_court_texture_1787834010959.png" alt="Parquet Bois" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>🪵 Parquet Parquet Bois Rétro</div>
+              <div style={{ fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon icon="ph:tree-structure-bold" width="16" height="16" color="#F59E0B" />
+                Parquet Bois Rétro
+              </div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Texture système officielle</div>
             </div>
 
@@ -137,7 +136,10 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
               <div style={{ height: 140, borderRadius: 12, overflow: 'hidden', marginBottom: 8, background: '#161921' }}>
                 <img src="/artifacts/bcsn_leather_ball_texture_1787834023930.png" alt="Cuir Ballon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>🏀 Cuir Ballon de Basket</div>
+              <div style={{ fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon icon="ph:basketball-bold" width="16" height="16" color="#EA580C" />
+                Cuir Ballon de Basket
+              </div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Texture système officielle</div>
             </div>
 
@@ -145,7 +147,10 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
               <div style={{ height: 140, borderRadius: 12, overflow: 'hidden', marginBottom: 8, background: '#161921' }}>
                 <img src="/artifacts/bcsn_dark_sports_bg_1787833109383.png" alt="Arena Mesh" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>🏟️ Arena Sports Neon</div>
+              <div style={{ fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon icon="ph:lights-bold" width="16" height="16" color="#10B981" />
+                Arena Sports Neon
+              </div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Texture système officielle</div>
             </div>
 
@@ -153,7 +158,10 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
               <div style={{ height: 140, borderRadius: 12, overflow: 'hidden', marginBottom: 8, background: '#161921' }}>
                 <img src="/artifacts/bcsn_victory_gold_bg_1787833122029.png" alt="Or Victoire" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>🏆 Or & Confêtis Victoire</div>
+              <div style={{ fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon icon="ph:trophy-bold" width="16" height="16" color="#F59E0B" />
+                Or & Confettis Victoire
+              </div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Texture système officielle</div>
             </div>
 
