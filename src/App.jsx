@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Palette, BookUser, CalendarDays, UserCircle, 
   Menu, X, Link2, Copy, CheckCircle, ExternalLink, LogOut, Cloud, FolderOpen
