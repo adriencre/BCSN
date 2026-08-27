@@ -27,13 +27,13 @@ const FORMATS = [
 // 8 Structural Layout Variants!
 const LAYOUT_STYLES = [
   { id: 'streetwear', name: 'Streetwear Centré (Pavés Heavy)', desc: 'Disposition centrée classique avec pavés contrastés' },
-  { id: 'split_left_text', name: 'Split 50/50 : Texte à Gauche / Photo à Droite', desc: 'Texte & score à gauche, photo du joueur/match à droite' },
-  { id: 'split_right_text', name: 'Split 50/50 : Photo à Gauche / Texte à Droite', desc: 'Photo à gauche, informations & score à droite' },
+  { id: 'split_left_text', name: 'Split 50/50 : Texte à Gauche / Visual à Droite', desc: 'Texte & infos à gauche, visuel/score à droite' },
+  { id: 'split_right_text', name: 'Split 50/50 : Visual à Gauche / Texte à Droite', desc: 'Visuel/score à gauche, informations à droite' },
   { id: 'no_image_clean', name: 'Minimalist Clean (Sans Photo)', desc: 'Design typographique épuré 100% texte sans image' },
   { id: 'cyber', name: 'Cyber Neon (Contours & Cadres Fluo)', desc: 'Cadres futustistes et bordures lumineuses' },
-  { id: 'editorial', name: 'Editorial Magazine (Titre Géant en Fond)', desc: 'Couverture de magazine avec titre en arrière-plan' },
-  { id: 'banner_top', name: 'Split Horizontal (Photo Haut / Texte Bas)', desc: 'Photo sur la moitié haute, pavé d\'infos en bas' },
-  { id: 'ticket', name: 'Ticket Match Vintage (Pass Gymnase)', desc: 'Style billet de match perforé vintage' },
+  { id: 'editorial', name: 'Editorial Magazine (Titre Géant Filigrane)', desc: 'Style magazine avec texte filigrane géant en fond' },
+  { id: 'banner_top', name: 'Split Horizontal (Haut Visuel / Bas Infos)', desc: 'Visuel sur le tiers supérieur, pavé d\'infos en bas' },
+  { id: 'ticket', name: 'Ticket Match Vintage (Pass Gymnase)', desc: 'Style billet de match perforé avec code-barres' },
 ];
 
 // Fonts
@@ -75,7 +75,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   const [showPhoto, setShowPhoto] = useState(true);
   const [showLogo, setShowLogo] = useState(true);
   const [selectedLogoUrl, setSelectedLogoUrl] = useState('');
-  const [textAlign, setTextAlign] = useState('center'); // 'left' | 'center' | 'right'
+  const [textAlign, setTextAlign] = useState('center');
   const [copiedCaption, setCopiedCaption] = useState(false);
   const [programPage, setProgramPage] = useState(0);
 
@@ -260,13 +260,15 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     setTimeout(() => setCopiedCaption(false), 2500);
   };
 
-  // Render Visual Canvas Output with full structural layout flexibility!
+  // Render Visual Canvas Output with DRAMATIC visual transformations per layout style
   const renderVisualContent = () => {
     const isStory = selectedFormat.id === 'story';
     const isBanner = selectedFormat.id === 'banner';
     const isCyber = selectedLayout.id === 'cyber';
     const isCollege = selectedLayout.id === 'college';
     const isTicket = selectedLayout.id === 'ticket';
+    const isEditorial = selectedLayout.id === 'editorial';
+    const isBannerTop = selectedLayout.id === 'banner_top';
     const isSplitLeft = selectedLayout.id === 'split_left_text';
     const isSplitRight = selectedLayout.id === 'split_right_text';
     const isNoImage = selectedLayout.id === 'no_image_clean' || !showPhoto;
@@ -289,14 +291,30 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
       boxSizing: 'border-box',
     };
 
+    // Determine content flex alignment & direction based on selected layout
+    const contentFlexDirection = isBannerTop ? 'column' : (isSplitLeft || isSplitRight ? 'row' : 'column');
+    const contentTextAlign = isSplitLeft ? 'left' : (isSplitRight ? 'right' : textAlign);
+
     return (
       <div style={visualStyle}>
+        {/* Editorial Giant Background Text Watermark */}
+        {isEditorial && (
+          <div style={{
+            position: 'absolute', top: '25%', left: '-10%', right: '-10%',
+            fontSize: isStory ? 100 : 70, fontWeight: 900, color: 'rgba(255,255,255,0.06)',
+            textTransform: 'uppercase', letterSpacing: 4, whiteSpace: 'nowrap',
+            pointerEvents: 'none', zIndex: 1, textCenter: 'center', textAlign: 'center'
+          }}>
+            BCSN 1978
+          </div>
+        )}
+
         {/* Dark Vignette Layer */}
         {!isNoImage && (
           <div style={{
             position: 'absolute', inset: 0,
-            background: isCollege ? 'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.9) 100%)' :
-                        isCyber ? 'radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.92) 100%)' :
+            background: isCollege ? 'linear-gradient(180deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.92) 100%)' :
+                        isCyber ? 'radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.94) 100%)' :
                         'radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%)',
             pointerEvents: 'none'
           }} />
@@ -304,9 +322,27 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
         {/* Cyber Neon Borders if selected */}
         {isCyber && (
+          <>
+            <div style={{
+              position: 'absolute', inset: 10, border: `2px solid ${accentColor}`,
+              borderRadius: 12, pointerEvents: 'none', boxShadow: `0 0 20px ${accentColor}AA`
+            }} />
+            <div style={{
+              position: 'absolute', top: 16, left: 16, width: 12, height: 12,
+              borderTop: `3px solid ${accentColor}`, borderLeft: `3px solid ${accentColor}`
+            }} />
+            <div style={{
+              position: 'absolute', top: 16, right: 16, width: 12, height: 12,
+              borderTop: `3px solid ${accentColor}`, borderRight: `3px solid ${accentColor}`
+            }} />
+          </>
+        )}
+
+        {/* Ticket Perforated Dashed Line if selected */}
+        {isTicket && (
           <div style={{
-            position: 'absolute', inset: 12, border: `2px solid ${accentColor}`,
-            borderRadius: 12, pointerEvents: 'none', boxShadow: `0 0 15px ${accentColor}88`
+            position: 'absolute', top: 0, bottom: 0, right: 60,
+            borderRight: '2px dashed rgba(255,255,255,0.4)', pointerEvents: 'none', zIndex: 3
           }} />
         )}
 
@@ -373,84 +409,77 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           </div>
         </div>
 
-        {/* Center Main Content (Supports Split Left/Right & Custom Alignment) */}
+        {/* CENTER CONTENT WRAPPER REACTING DRAMATICALLY TO SELECTED LAYOUT */}
         <div style={{
           position: 'relative', zIndex: 2, flex: 1, display: 'flex',
-          flexDirection: isSplitLeft || isSplitRight ? 'row' : 'column',
+          flexDirection: contentFlexDirection,
           justifyContent: 'center', alignItems: 'center', margin: '10px 0', gap: 16,
-          textAlign: textAlign
+          textAlign: contentTextAlign
         }}>
           
           {/* TEMPLATE 1: RESULTAT */}
           {selectedTemplate.id === 'result' && (
-            <div style={{ textAlign: textAlign, width: '100%' }}>
-              <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: isStory ? 18 : 14, letterSpacing: 3, textTransform: 'uppercase',
-                fontWeight: 900, background: config.isVictory ? accentColor : '#EF4444',
-                color: '#FFF', padding: '6px 18px', borderRadius: isTicket ? 0 : 6, marginBottom: 14,
-                border: '2px solid #000', boxShadow: '4px 4px 0px #000'
-              }}>
-                <Icon icon={config.isVictory ? "ph:trophy-bold" : "ph:x-circle-bold"} width="18" height="18" />
-                {config.isVictory ? 'VICTOIRE' : 'DÉFAITE'}
+            <div style={{
+              width: '100%', display: 'flex',
+              flexDirection: isSplitLeft ? 'row' : isSplitRight ? 'row-reverse' : 'column',
+              alignItems: 'center', justifyContent: 'center', gap: 16, textAlign: contentTextAlign
+            }}>
+              <div style={{ flex: 1, textAlign: contentTextAlign }}>
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: isStory ? 18 : 14, letterSpacing: 3, textTransform: 'uppercase',
+                  fontWeight: 900, background: config.isVictory ? accentColor : '#EF4444',
+                  color: '#FFF', padding: '6px 18px', borderRadius: isTicket ? 0 : 6, marginBottom: 12,
+                  border: '2px solid #000', boxShadow: '4px 4px 0px #000'
+                }}>
+                  <Icon icon={config.isVictory ? "ph:trophy-bold" : "ph:x-circle-bold"} width="18" height="18" />
+                  {config.isVictory ? 'VICTOIRE' : 'DÉFAITE'}
+                </div>
+
+                <div style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1, opacity: 0.9 }}>
+                  {config.category || 'BCSN'}
+                </div>
+                {config.quarterDetails && (
+                  <div style={{ fontSize: 10, opacity: 0.85, marginTop: 4, fontFamily: "'Inter', sans-serif" }}>
+                    {config.quarterDetails}
+                  </div>
+                )}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isBanner ? 18 : 10, width: '100%' }}>
-                {/* Home */}
-                <div style={{ flex: 1, textAlign: 'center', background: 'rgba(0,0,0,0.6)', padding: 10, borderRadius: 10, border: `1px solid ${accentColor}` }}>
-                  <div style={{ fontSize: isStory ? 20 : isBanner ? 16 : 18, fontWeight: 900, textTransform: 'uppercase', opacity: 0.9 }}>
-                    {config.teamHome}
-                  </div>
-                  <div style={{
-                    fontSize: isStory ? 70 : isBanner ? 48 : 62, fontWeight: 900,
-                    lineHeight: 0.9, color: config.isVictory ? accentColor : '#FFF',
-                    textShadow: '3px 3px 0px #000'
-                  }}>
-                    {config.score1}
-                  </div>
+              {/* Score Board Display */}
+              <div style={{ flex: 1.2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%' }}>
+                <div style={{ flex: 1, textAlign: 'center', background: 'rgba(0,0,0,0.7)', padding: 10, borderRadius: 10, border: `2px solid ${accentColor}` }}>
+                  <div style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', opacity: 0.9 }}>{config.teamHome}</div>
+                  <div style={{ fontSize: isStory ? 60 : 48, fontWeight: 900, lineHeight: 0.9, color: config.isVictory ? accentColor : '#FFF' }}>{config.score1}</div>
                 </div>
-
-                <div style={{ fontSize: 22, opacity: 0.6, fontWeight: 900 }}>VS</div>
-
-                {/* Away */}
-                <div style={{ flex: 1, textAlign: 'center', background: 'rgba(0,0,0,0.6)', padding: 10, borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)' }}>
-                  <div style={{ fontSize: isStory ? 20 : isBanner ? 16 : 18, fontWeight: 900, textTransform: 'uppercase', opacity: 0.9 }}>
-                    {config.teamAway}
-                  </div>
-                  <div style={{
-                    fontSize: isStory ? 70 : isBanner ? 48 : 62, fontWeight: 900,
-                    lineHeight: 0.9, textShadow: '3px 3px 0px #000'
-                  }}>
-                    {config.score2}
-                  </div>
+                <div style={{ fontSize: 18, opacity: 0.6, fontWeight: 900 }}>VS</div>
+                <div style={{ flex: 1, textAlign: 'center', background: 'rgba(0,0,0,0.7)', padding: 10, borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)' }}>
+                  <div style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', opacity: 0.9 }}>{config.teamAway}</div>
+                  <div style={{ fontSize: isStory ? 60 : 48, fontWeight: 900, lineHeight: 0.9 }}>{config.score2}</div>
                 </div>
               </div>
-
-              {config.quarterDetails && (
-                <div style={{ fontSize: 10, opacity: 0.85, marginTop: 10, fontFamily: "'Inter', sans-serif", letterSpacing: 0.5 }}>
-                  {config.quarterDetails}
-                </div>
-              )}
             </div>
           )}
 
           {/* TEMPLATE 2: MATCH DAY */}
           {selectedTemplate.id === 'match_day' && (
-            <div style={{ textAlign: textAlign, width: '100%' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: isStory ? 16 : 12, letterSpacing: 3, textTransform: 'uppercase', color: accentColor, marginBottom: 8, fontWeight: 900 }}>
-                <Icon icon="ph:swords-bold" width="16" height="16" />
-                {config.competition || 'JOUR DE MATCH'}
+            <div style={{
+              width: '100%', display: 'flex',
+              flexDirection: isSplitLeft ? 'row' : isSplitRight ? 'row-reverse' : 'column',
+              alignItems: 'center', justifyContent: 'center', gap: 16, textAlign: contentTextAlign
+            }}>
+              <div style={{ flex: 1, textAlign: contentTextAlign }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: accentColor, marginBottom: 6, fontWeight: 900 }}>
+                  <Icon icon="ph:swords-bold" width="16" height="16" />
+                  {config.competition || 'JOUR DE MATCH'}
+                </div>
+                <div style={{ fontSize: isStory ? 32 : 26, fontWeight: 900, textTransform: 'uppercase', lineHeight: 1.1 }}>
+                  {config.teamHome} <span style={{ color: accentColor }}>VS</span> {config.teamAway}
+                </div>
               </div>
 
               <div style={{
-                fontSize: isStory ? 36 : isBanner ? 24 : 30, fontWeight: 900,
-                textTransform: 'uppercase', lineHeight: 1.1, textShadow: '4px 4px 0px #000'
-              }}>
-                {config.teamHome} <span style={{ color: accentColor }}>VS</span> {config.teamAway}
-              </div>
-
-              <div style={{
-                marginTop: 14, background: 'rgba(0,0,0,0.7)', padding: '10px 18px', borderRadius: isTicket ? 0 : 8,
-                border: `2px solid ${accentColor}`, boxShadow: '4px 4px 0px #000', display: 'inline-block'
+                background: 'rgba(0,0,0,0.75)', padding: '12px 20px', borderRadius: isTicket ? 0 : 8,
+                border: `2px solid ${accentColor}`, boxShadow: '4px 4px 0px #000', flex: 1, textAlign: 'center'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 800, fontFamily: "'Inter', sans-serif" }}>
                   <Icon icon="ph:calendar-blank-bold" width="15" height="15" color={accentColor} />
@@ -465,7 +494,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             </div>
           )}
 
-          {/* TEMPLATE 3: PLAYER MVP (SUPPORTS SPLIT LEFT / RIGHT REORDERING) */}
+          {/* TEMPLATE 3: PLAYER MVP */}
           {selectedTemplate.id === 'player_mvp' && (
             <div style={{
               width: '100%', display: 'flex',
@@ -491,7 +520,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
               )}
 
               {/* Player Info & Stats */}
-              <div style={{ textAlign: isSplitLeft ? 'left' : isSplitRight ? 'right' : textAlign, flex: 1 }}>
+              <div style={{ textAlign: contentTextAlign, flex: 1 }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: accentColor, fontWeight: 900, marginBottom: 4 }}>
                   <Icon icon="ph:star-bold" width="15" height="15" />
                   MVP DU MATCH
@@ -528,7 +557,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
           {/* TEMPLATE 4: DYNAMIC WEEKEND PROGRAM */}
           {selectedTemplate.id === 'weekend_program' && (
-            <div style={{ width: '100%', textAlign: textAlign }}>
+            <div style={{ width: '100%', textAlign: contentTextAlign }}>
               <div style={{ fontSize: isStory ? 18 : 13, letterSpacing: 2, textTransform: 'uppercase', color: accentColor, marginBottom: 2, fontWeight: 900 }}>
                 {config.programTitle}
               </div>
@@ -573,7 +602,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
           {/* TEMPLATE 5: ANNOUNCEMENT */}
           {selectedTemplate.id === 'announcement' && (
-            <div style={{ textAlign: textAlign, padding: '0 12px' }}>
+            <div style={{ textAlign: contentTextAlign, padding: '0 12px' }}>
               <div style={{ fontSize: isStory ? 28 : 22, fontWeight: 900, textTransform: 'uppercase', color: accentColor, marginBottom: 8, textShadow: '3px 3px 0px #000' }}>
                 {config.customTitle || 'COMMUNIQUÉ DU CLUB'}
               </div>
@@ -642,7 +671,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                 <option key={l.id} value={l.id}>{l.name}</option>
               ))}
             </select>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+            <div style={{ fontSize: 11, color: 'var(--primary-light)', marginTop: 4, fontWeight: 600 }}>
               {selectedLayout.desc}
             </div>
           </div>
@@ -1067,7 +1096,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
             <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
               <Icon icon="ph:eye-bold" width="20" height="20" color="var(--primary-light)" />
-              Aperçu Rétro Streetwear HD
+              Aperçu HD ({selectedLayout.name})
             </h3>
 
             <div style={{ display: 'flex', gap: 8 }}>
