@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
-  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, 
+  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDocs, writeBatch,
   onSnapshot, query, orderBy, serverTimestamp 
 } from 'firebase/firestore';
 import { getFirebaseConfig } from '../config/firebaseConfig';
@@ -117,13 +117,60 @@ export async function saveEventCloud(eventData) {
   if (!isConnected || !db) return false;
 
   try {
-    const docRef = await addDoc(collection(db, 'events'), {
+    const docId = eventData.id || doc(collection(db, 'events')).id;
+    const ref = doc(db, 'events', docId);
+    await setDoc(ref, {
       ...eventData,
-      createdAt: new Date().toISOString(),
-    });
-    return docRef.id;
+      id: docId,
+      updatedAt: serverTimestamp(),
+      createdAt: eventData.createdAt || new Date().toISOString(),
+    }, { merge: true });
+    return docId;
   } catch (err) {
     console.error("Erreur ajout événement Firestore :", err);
+    throw err;
+  }
+}
+
+export async function seedEventsToCloud(eventsList) {
+  const { db, isConnected } = initFirebase();
+  if (!isConnected || !db) throw new Error("Database Firebase Firestore non connectée.");
+
+  try {
+    const chunkSize = 400;
+    for (let i = 0; i < eventsList.length; i += chunkSize) {
+      const chunk = eventsList.slice(i, i + chunkSize);
+      const batch = writeBatch(db);
+      for (const evt of chunk) {
+        const docRef = doc(db, 'events', evt.id);
+        batch.set(docRef, {
+          ...evt,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+      }
+      await batch.commit();
+    }
+    return true;
+  } catch (err) {
+    console.error("Erreur seed d'événements Firestore BDD :", err);
+    throw err;
+  }
+}
+
+export async function deleteAllEventsCloud() {
+  const { db, isConnected } = initFirebase();
+  if (!isConnected || !db) return false;
+
+  try {
+    const snapshot = await getDocs(collection(db, 'events'));
+    const batch = writeBatch(db);
+    snapshot.docs.forEach(d => {
+      batch.delete(d.ref);
+    });
+    await batch.commit();
+    return true;
+  } catch (err) {
+    console.error("Erreur suppression globale événements Firestore :", err);
     throw err;
   }
 }
@@ -140,3 +187,4 @@ export async function deleteEventCloud(eventId) {
     throw err;
   }
 }
+

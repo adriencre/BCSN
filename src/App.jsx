@@ -4,6 +4,7 @@ import {
   Menu, X, Link2, Copy, CheckCircle, ExternalLink, LogOut, Cloud, FolderOpen
 } from 'lucide-react';
 import { TEAMS } from './data/teamsData';
+import { ALL_PLANNING_2026_2027 } from './data/planning2026_2027';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { OverviewPage } from './pages/OverviewPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -44,12 +45,19 @@ export default function App() {
   const [activePage, setActivePage] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [members, setMembers] = useLocalStorage('bcsn_members', []);
-  const [events, setEvents] = useLocalStorage('bcsn_events', []);
+  const [events, setEvents] = useLocalStorage('bcsn_events', ALL_PLANNING_2026_2027);
   const [customAssets, setCustomAssets] = useLocalStorage('bcsn_custom_assets', []);
   const [toast, setToast] = useState(null);
   const [copiedLink, setCopiedLink] = useState(null);
   const [showCloudModal, setShowCloudModal] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState(null);
+
+  // Ensure default events are seeded if events list is empty
+  useEffect(() => {
+    if (!events || events.length === 0) {
+      setEvents(ALL_PLANNING_2026_2027);
+    }
+  }, []);
 
   // Real-time Cloud subscription (Firestore)
   useEffect(() => {
