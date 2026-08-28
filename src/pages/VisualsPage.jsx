@@ -178,8 +178,8 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     announcementFooter: '#BCSN #BASKETBALL #FAMILY',
   });
 
-  // Multi-page automatic calculation (jusqu'à 16 matchs par colonne par affiche)
-  const maxMatchesPerPage = 16;
+  // Multi-page automatic calculation (jusqu'à 11 matchs par colonne par affiche)
+  const maxMatchesPerPage = 11;
   const totalSatPages = Math.ceil((config?.saturdayMatches?.length || 0) / maxMatchesPerPage) || 1;
   const totalSunPages = Math.ceil((config?.sundayMatches?.length || 0) / maxMatchesPerPage) || 1;
   const totalProgramPages = Math.max(totalSatPages, totalSunPages);
