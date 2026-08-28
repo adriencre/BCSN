@@ -178,8 +178,8 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     announcementFooter: '#BCSN #BASKETBALL #FAMILY',
   });
 
-  // Multi-page automatic calculation (jusqu'à 10 matchs par colonne par affiche)
-  const maxMatchesPerPage = 10;
+  // Multi-page automatic calculation (jusqu'à 16 matchs par colonne par affiche)
+  const maxMatchesPerPage = 16;
   const totalSatPages = Math.ceil((config?.saturdayMatches?.length || 0) / maxMatchesPerPage) || 1;
   const totalSunPages = Math.ceil((config?.sundayMatches?.length || 0) / maxMatchesPerPage) || 1;
   const totalProgramPages = Math.max(totalSatPages, totalSunPages);
@@ -399,6 +399,21 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     const paginatedSatMatches = config.saturdayMatches.slice((safePage - 1) * maxMatchesPerPage, safePage * maxMatchesPerPage);
     const paginatedSunMatches = config.sundayMatches.slice((safePage - 1) * maxMatchesPerPage, safePage * maxMatchesPerPage);
 
+    const maxCount = Math.max(paginatedSatMatches.length, paginatedSunMatches.length);
+    const isUltraCompact = maxCount > 10;
+    const isCompact = maxCount > 6 && !isUltraCompact;
+
+    const rowMinHeight = isUltraCompact ? 17 : isCompact ? 22 : 25;
+    const rowPadding = isUltraCompact ? '1px 4px' : isCompact ? '2px 5px' : '2.5px 6px';
+    const rowGap = isUltraCompact ? 1.5 : isCompact ? 2.5 : 3;
+    const catFont = isUltraCompact ? 10.5 : isCompact ? 11.5 : 12;
+    const timeFont = isUltraCompact ? 7 : isCompact ? 7.5 : 8;
+    const oppFont = isUltraCompact ? 6.8 : isCompact ? 7.2 : 7.6;
+    const ballIconBox = isUltraCompact ? 13 : isCompact ? 15 : 17;
+    const ballIconSvg = isUltraCompact ? 8 : isCompact ? 9.5 : 10;
+    const pillPad = isUltraCompact ? '1px 3px' : '1.5px 4px';
+    const pillFont = isUltraCompact ? 5.5 : 6;
+
     return (
       <div style={{
         width: '100%',
@@ -415,16 +430,16 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: isStory ? '22px 14px 10px 14px' : isPost ? '10px 10px' : '14px 14px 8px 14px',
+        padding: isStory ? '20px 14px 10px 14px' : isPost ? '8px 8px' : '12px 12px 8px 12px',
         boxSizing: 'border-box',
         fontFamily: "'Outfit', sans-serif",
         color: isDark ? '#FFFFFF' : '#1E293B'
       }}>
         {/* HEADER BRANDING : 100% DROIT & CENTRÉ */}
-        <div style={{ position: 'relative', zIndex: 5, textAlign: 'center', marginBottom: 3 }}>
+        <div style={{ position: 'relative', zIndex: 5, textAlign: 'center', marginBottom: isUltraCompact ? 2 : 3 }}>
           {/* Logo officiel du club */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 2 }}>
-            <BcsnOfficialLogo isDark={isDark} size={isStory ? 56 : isPost ? 44 : 50} customLogoUrl={customLogoUrl} />
+            <BcsnOfficialLogo isDark={isDark} size={isStory ? 54 : isPost ? 40 : isUltraCompact ? 44 : 48} customLogoUrl={customLogoUrl} />
           </div>
 
           {/* Titre Principal + Badge Multi-Page */}
@@ -432,7 +447,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             fontFamily: "'Bebas Neue', sans-serif",
             fontStyle: 'italic',
             fontWeight: 900,
-            fontSize: isStory ? 32 : isPost ? 24 : 28,
+            fontSize: isStory ? 30 : isPost ? 22 : isUltraCompact ? 25 : 28,
             lineHeight: 1,
             letterSpacing: 1.5,
             display: 'flex',
@@ -446,11 +461,11 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
               <span style={{
                 fontFamily: "'Outfit', sans-serif",
                 fontStyle: 'normal',
-                fontSize: 9,
+                fontSize: 8.5,
                 fontWeight: 900,
                 background: '#D62828',
                 color: '#FFFFFF',
-                padding: '1.5px 6px',
+                padding: '1px 5px',
                 borderRadius: 4,
                 letterSpacing: 0.5,
                 marginLeft: 2,
@@ -472,18 +487,18 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             borderRadius: 5,
             padding: '2px 10px',
             marginTop: 2,
-            fontSize: 8.5,
+            fontSize: isUltraCompact ? 7.5 : 8.5,
             fontWeight: 800,
             letterSpacing: 0.5,
             boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Icon icon="ph:basketball-bold" width="11" height="11" color="#FFFFFF" />
+              <Icon icon="ph:basketball-bold" width={isUltraCompact ? "10" : "11"} height={isUltraCompact ? "10" : "11"} color="#FFFFFF" />
               <span>{config.clubSocialName}</span>
             </div>
             <span style={{ opacity: 0.5 }}>|</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Icon icon="ph:instagram-logo-bold" width="11" height="11" color="#FFFFFF" />
+              <Icon icon="ph:instagram-logo-bold" width={isUltraCompact ? "10" : "11"} height={isUltraCompact ? "10" : "11"} color="#FFFFFF" />
               <span>{config.clubInstagram}</span>
             </div>
           </div>
@@ -495,64 +510,64 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           zIndex: 5,
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: 8,
+          gap: 6,
           flex: 1,
-          margin: '2px 0 4px 0',
+          margin: '2px 0 3px 0',
           alignItems: 'start',
           width: '100%',
           boxSizing: 'border-box'
         }}>
           {/* SAMEDI */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap, minWidth: 0 }}>
             {/* Header Samedi */}
             <div style={{
               background: isDark ? '#10B981' : '#0B4D3B',
               color: isDark ? '#000000' : '#FFFFFF',
-              borderRadius: 5,
-              padding: '2.5px 8px',
+              borderRadius: 4,
+              padding: isUltraCompact ? '2px 6px' : '2.5px 8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 5,
+              gap: 4,
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>
-              <Icon icon="ph:calendar-blank-bold" width="12" height="12" />
-              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontStyle: 'italic', fontSize: 13.5, letterSpacing: 1.5, fontWeight: 900, lineHeight: 1 }}>
+              <Icon icon="ph:calendar-blank-bold" width={isUltraCompact ? "11" : "12"} height={isUltraCompact ? "11" : "12"} />
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontStyle: 'italic', fontSize: isUltraCompact ? 12 : 13.5, letterSpacing: 1.5, fontWeight: 900, lineHeight: 1 }}>
                 SAMEDI
               </span>
             </div>
 
             {/* List of Saturday Matches */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
               {paginatedSatMatches.map((m) => {
                 const matchColor = m.isHome ? (isDark ? '#10B981' : homeColor) : awayColor;
                 return (
                   <div key={m.id} style={{
                     background: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF',
-                    borderRadius: 6,
-                    padding: '2.5px 5px',
+                    borderRadius: 5,
+                    padding: rowPadding,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: 3,
+                    gap: 2.5,
                     boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                     border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
-                    minHeight: 24,
+                    minHeight: rowMinHeight,
                     boxSizing: 'border-box'
                   }}>
                     {/* Left details */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, overflow: 'hidden', flex: 1, minWidth: 0 }}>
-                      <div style={{ width: 17, height: 17, borderRadius: '50%', background: matchColor, color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Icon icon="ph:basketball-bold" width="10" height="10" color="#FFFFFF" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 2.5, overflow: 'hidden', flex: 1, minWidth: 0 }}>
+                      <div style={{ width: ballIconBox, height: ballIconBox, borderRadius: '50%', background: matchColor, color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon icon="ph:basketball-bold" width={ballIconSvg} height={ballIconSvg} color="#FFFFFF" />
                       </div>
-                      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, fontWeight: 900, color: matchColor, letterSpacing: 0.3, whiteSpace: 'nowrap', lineHeight: 1, flexShrink: 0 }}>
+                      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: catFont, fontWeight: 900, color: matchColor, letterSpacing: 0.2, whiteSpace: 'nowrap', lineHeight: 1, flexShrink: 0 }}>
                         {m.category}
                       </div>
-                      <span style={{ color: isDark ? '#4B5563' : '#CBD5E1', fontSize: 8 }}>|</span>
-                      <div style={{ fontSize: 8, fontWeight: 700, color: isDark ? '#E2E8F0' : '#1E293B', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: "'Inter', sans-serif" }}>
+                      <span style={{ color: isDark ? '#4B5563' : '#CBD5E1', fontSize: 7 }}>|</span>
+                      <div style={{ fontSize: timeFont, fontWeight: 700, color: isDark ? '#E2E8F0' : '#1E293B', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: "'Inter', sans-serif" }}>
                         {m.time}
                       </div>
-                      <div style={{ fontSize: 7.5, fontWeight: 600, color: isDark ? '#94A3B8' : '#334155', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Inter', sans-serif" }}>
+                      <div style={{ fontSize: oppFont, fontWeight: 600, color: isDark ? '#94A3B8' : '#334155', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Inter', sans-serif" }}>
                         {m.opponent}
                       </div>
                     </div>
@@ -562,15 +577,15 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                       background: matchColor,
                       color: '#FFFFFF',
                       borderRadius: 3,
-                      padding: '1.5px 4px',
+                      padding: pillPad,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 2,
                       flexShrink: 0
                     }}>
-                      <Icon icon={m.isHome ? "ph:house-line-bold" : "ph:map-pin-bold"} width="7" height="7" color="#FFFFFF" />
-                      <span style={{ fontSize: 6, fontWeight: 900, letterSpacing: 0.2, lineHeight: 1, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                      <Icon icon={m.isHome ? "ph:house-line-bold" : "ph:map-pin-bold"} width={ballIconSvg - 2} height={ballIconSvg - 2} color="#FFFFFF" />
+                      <span style={{ fontSize: pillFont, fontWeight: 900, letterSpacing: 0.2, lineHeight: 1, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                         {m.isHome ? 'DOM' : 'EXT'}
                       </span>
                     </div>
@@ -578,7 +593,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                 );
               })}
               {paginatedSatMatches.length === 0 && (
-                <div style={{ textAlign: 'center', fontSize: 9, opacity: 0.5, padding: 4, fontStyle: 'italic' }}>
+                <div style={{ textAlign: 'center', fontSize: 8.5, opacity: 0.5, padding: 3, fontStyle: 'italic' }}>
                   Aucun match supplémentaire le samedi
                 </div>
               )}
@@ -586,56 +601,56 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           </div>
 
           {/* DIMANCHE */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap, minWidth: 0 }}>
             {/* Header Dimanche */}
             <div style={{
               background: isDark ? '#10B981' : '#0B4D3B',
               color: isDark ? '#000000' : '#FFFFFF',
-              borderRadius: 5,
-              padding: '2.5px 8px',
+              borderRadius: 4,
+              padding: isUltraCompact ? '2px 6px' : '2.5px 8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 5,
+              gap: 4,
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>
-              <Icon icon="ph:calendar-blank-bold" width="12" height="12" />
-              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontStyle: 'italic', fontSize: 13.5, letterSpacing: 1.5, fontWeight: 900, lineHeight: 1 }}>
+              <Icon icon="ph:calendar-blank-bold" width={isUltraCompact ? "11" : "12"} height={isUltraCompact ? "11" : "12"} />
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontStyle: 'italic', fontSize: isUltraCompact ? 12 : 13.5, letterSpacing: 1.5, fontWeight: 900, lineHeight: 1 }}>
                 DIMANCHE
               </span>
             </div>
 
             {/* List of Sunday Matches */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
               {paginatedSunMatches.map((m) => {
                 const matchColor = m.isHome ? (isDark ? '#10B981' : homeColor) : awayColor;
                 return (
                   <div key={m.id} style={{
                     background: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF',
-                    borderRadius: 6,
-                    padding: '2.5px 5px',
+                    borderRadius: 5,
+                    padding: rowPadding,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: 3,
+                    gap: 2.5,
                     boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                     border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
-                    minHeight: 24,
+                    minHeight: rowMinHeight,
                     boxSizing: 'border-box'
                   }}>
                     {/* Left details */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, overflow: 'hidden', flex: 1, minWidth: 0 }}>
-                      <div style={{ width: 17, height: 17, borderRadius: '50%', background: matchColor, color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Icon icon="ph:basketball-bold" width="10" height="10" color="#FFFFFF" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 2.5, overflow: 'hidden', flex: 1, minWidth: 0 }}>
+                      <div style={{ width: ballIconBox, height: ballIconBox, borderRadius: '50%', background: matchColor, color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon icon="ph:basketball-bold" width={ballIconSvg} height={ballIconSvg} color="#FFFFFF" />
                       </div>
-                      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, fontWeight: 900, color: matchColor, letterSpacing: 0.3, whiteSpace: 'nowrap', lineHeight: 1, flexShrink: 0 }}>
+                      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: catFont, fontWeight: 900, color: matchColor, letterSpacing: 0.2, whiteSpace: 'nowrap', lineHeight: 1, flexShrink: 0 }}>
                         {m.category}
                       </div>
-                      <span style={{ color: isDark ? '#4B5563' : '#CBD5E1', fontSize: 8 }}>|</span>
-                      <div style={{ fontSize: 8, fontWeight: 700, color: isDark ? '#E2E8F0' : '#1E293B', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: "'Inter', sans-serif" }}>
+                      <span style={{ color: isDark ? '#4B5563' : '#CBD5E1', fontSize: 7 }}>|</span>
+                      <div style={{ fontSize: timeFont, fontWeight: 700, color: isDark ? '#E2E8F0' : '#1E293B', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: "'Inter', sans-serif" }}>
                         {m.time}
                       </div>
-                      <div style={{ fontSize: 7.5, fontWeight: 600, color: isDark ? '#94A3B8' : '#334155', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Inter', sans-serif" }}>
+                      <div style={{ fontSize: oppFont, fontWeight: 600, color: isDark ? '#94A3B8' : '#334155', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Inter', sans-serif" }}>
                         {m.opponent}
                       </div>
                     </div>
@@ -645,15 +660,15 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                       background: matchColor,
                       color: '#FFFFFF',
                       borderRadius: 3,
-                      padding: '1.5px 4px',
+                      padding: pillPad,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 2,
                       flexShrink: 0
                     }}>
-                      <Icon icon={m.isHome ? "ph:house-line-bold" : "ph:map-pin-bold"} width="7" height="7" color="#FFFFFF" />
-                      <span style={{ fontSize: 6, fontWeight: 900, letterSpacing: 0.2, lineHeight: 1, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                      <Icon icon={m.isHome ? "ph:house-line-bold" : "ph:map-pin-bold"} width={ballIconSvg - 2} height={ballIconSvg - 2} color="#FFFFFF" />
+                      <span style={{ fontSize: pillFont, fontWeight: 900, letterSpacing: 0.2, lineHeight: 1, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                         {m.isHome ? 'DOM' : 'EXT'}
                       </span>
                     </div>
@@ -661,7 +676,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                 );
               })}
               {paginatedSunMatches.length === 0 && (
-                <div style={{ textAlign: 'center', fontSize: 9, opacity: 0.5, padding: 4, fontStyle: 'italic' }}>
+                <div style={{ textAlign: 'center', fontSize: 8.5, opacity: 0.5, padding: 3, fontStyle: 'italic' }}>
                   Aucun match supplémentaire le dimanche
                 </div>
               )}
@@ -674,26 +689,26 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           <div style={{
             background: isDark ? 'rgba(0,0,0,0.6)' : '#FFFFFF',
             borderRadius: 5,
-            padding: '3px 12px',
+            padding: '2.5px 10px',
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 10,
-            fontSize: 8,
+            gap: 8,
+            fontSize: isUltraCompact ? 7.5 : 8,
             fontFamily: "'Inter', sans-serif",
             boxShadow: '0 2px 5px rgba(0,0,0,0.06)',
             border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.06)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 14, height: 14, borderRadius: 3, background: isDark ? '#10B981' : '#0B4D3B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon icon="ph:house-line-bold" width="8" height="8" color={isDark ? '#000' : '#FFF'} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 3.5 }}>
+              <div style={{ width: 13, height: 13, borderRadius: 3, background: isDark ? '#10B981' : '#0B4D3B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon icon="ph:house-line-bold" width="7.5" height="7.5" color={isDark ? '#000' : '#FFF'} />
               </div>
               <span style={{ color: isDark ? '#10B981' : '#0B4D3B', fontWeight: 900, textTransform: 'uppercase', fontSize: 7.5 }}>DOMICILE :</span>
               <span style={{ color: isDark ? '#CBD5E1' : '#475569', fontWeight: 600 }}>{config.venueHome}</span>
             </div>
             <span style={{ color: isDark ? '#4B5563' : '#CBD5E1' }}>|</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 14, height: 14, borderRadius: 3, background: '#D62828', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon icon="ph:map-pin-bold" width="8" height="8" color="#FFFFFF" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 3.5 }}>
+              <div style={{ width: 13, height: 13, borderRadius: 3, background: '#D62828', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon icon="ph:map-pin-bold" width="7.5" height="7.5" color="#FFFFFF" />
               </div>
               <span style={{ color: '#D62828', fontWeight: 900, textTransform: 'uppercase', fontSize: 7.5 }}>EXTÉRIEUR :</span>
               <span style={{ color: isDark ? '#CBD5E1' : '#475569', fontWeight: 600 }}>{config.venueAway}</span>
