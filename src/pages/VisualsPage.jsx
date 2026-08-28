@@ -214,8 +214,8 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     portraitA3: 'Continuer à progresser et aider l\'équipe à aller le plus loin possible.',
     portraitQ4: 'SA MUSIQUE AVANT UN MATCH',
     portraitA4: 'Ninho, SDM, Gazo',
-    portraitQ5: 'FUN FACT',
-    portraitA5: 'Je suis passionné par les sneakers et j\'ai plus de 30 paires !',
+    portraitQ5: 'MOT POUR LES SUPPORTERS / LICENCIÉS',
+    portraitA5: 'Hâte de vous retrouver au Complexe Bonne Humeur pour faire du bruit !',
     portraitSelectedMemberId: '',
   });
 
@@ -2389,13 +2389,18 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                     const memberId = e.target.value;
                     const m = members.find(x => x.id === memberId);
                     if (m) {
+                      const answers = m.formAnswers || {};
                       setConfig(prev => ({
                         ...prev,
                         portraitSelectedMemberId: memberId,
                         portraitPlayerName: m.name || prev.portraitPlayerName,
-                        portraitNumber: m.number || prev.portraitNumber,
+                        portraitNumber: answers['Numéro de maillot'] && answers['Numéro de maillot'] !== '—' ? answers['Numéro de maillot'] : (m.number || prev.portraitNumber),
                         portraitCategory: m.team || prev.portraitCategory,
-                        portraitPosition: m.role ? `POSTE ${m.role.toUpperCase()}` : prev.portraitPosition
+                        portraitPosition: answers['Poste de jeu'] && answers['Poste de jeu'] !== '—' ? `POSTE ${answers['Poste de jeu'].replace(/\s*\(Poste\s*\d+\)/i, '').toUpperCase()}` : (m.role ? `POSTE ${m.role.toUpperCase()}` : prev.portraitPosition),
+                        portraitA2: answers['Meilleur souvenir avec le BCSN'] && answers['Meilleur souvenir avec le BCSN'] !== '—' ? answers['Meilleur souvenir avec le BCSN'] : prev.portraitA2,
+                        portraitA3: answers['Objectif pour cette saison'] && answers['Objectif pour cette saison'] !== '—' ? answers['Objectif pour cette saison'] : prev.portraitA3,
+                        portraitA4: answers['Musique avant un match'] && answers['Musique avant un match'] !== '—' ? answers['Musique avant un match'] : prev.portraitA4,
+                        portraitA5: answers['Mot pour les supporters / licenciés'] && answers['Mot pour les supporters / licenciés'] !== '—' ? answers['Mot pour les supporters / licenciés'] : prev.portraitA5
                       }));
                     } else {
                       setConfig(prev => ({

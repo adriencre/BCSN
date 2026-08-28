@@ -37,6 +37,7 @@ export function FormPublicJoueur() {
   const [form, setForm] = useState({
     name: '', team: '', maillot: '', taille: '', poste: '',
     instagram: '', surnom: '', joueurPrefere: '', consent: false,
+    meilleurSouvenir: '', objectifSaison: '', musiqueAvantMatch: '', motSupporters: ''
   });
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -78,6 +79,10 @@ export function FormPublicJoueur() {
         'Instagram': form.instagram || '—',
         'Surnom': form.surnom || '—',
         'Joueur/Joueuse préféré(e)': form.joueurPrefere || '—',
+        'Meilleur souvenir avec le BCSN': form.meilleurSouvenir || '—',
+        'Objectif pour cette saison': form.objectifSaison || '—',
+        'Musique avant un match': form.musiqueAvantMatch || '—',
+        'Mot pour les supporters / licenciés': form.motSupporters || '—',
       },
     };
 
@@ -241,6 +246,47 @@ export function FormPublicJoueur() {
                 />
               </div>
             </div>
+          </div>
+          <div className="form-field">
+            <label className="form-label">Ton meilleur souvenir avec le BCSN <span className="optional">optionnel</span></label>
+            <textarea
+              className="form-input"
+              rows={2}
+              value={form.meilleurSouvenir}
+              onChange={e => setForm({ ...form, meilleurSouvenir: e.target.value })}
+              placeholder="Ex: La victoire en finale départementale U13 avec toute l'équipe !"
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">Ton objectif pour cette saison <span className="optional">optionnel</span></label>
+            <input
+              className="form-input"
+              value={form.objectifSaison}
+              onChange={e => setForm({ ...form, objectifSaison: e.target.value })}
+              placeholder="Ex: Finir dans le top 3 et progresser collectivement"
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">La musique que tu écoutes avant un match <span className="optional">optionnel</span></label>
+            <input
+              className="form-input"
+              value={form.musiqueAvantMatch}
+              onChange={e => setForm({ ...form, musiqueAvantMatch: e.target.value })}
+              placeholder="Ex: Ninho, SDM, Gazo"
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">Un mot pour les supporters / licenciés du BCSN <span className="optional">optionnel</span></label>
+            <textarea
+              className="form-input"
+              rows={2}
+              value={form.motSupporters}
+              onChange={e => setForm({ ...form, motSupporters: e.target.value })}
+              placeholder="Ex: Hâte de vous retrouver au Complexe Bonne Humeur pour faire du bruit !"
+            />
           </div>
         </div>
 
