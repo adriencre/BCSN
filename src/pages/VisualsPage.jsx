@@ -149,14 +149,23 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     matchVenue: 'Complexe Bonne Humeur',
     matchCompetition: 'CHAMPIONNAT RÉGIONALE 2',
 
-    // Result template
-    resultCategory: 'SÉNIORS A (M)',
-    resultHomeTeam: 'BCSN',
-    resultAwayTeam: 'ARRAS',
-    scoreHome: '78',
-    scoreAway: '64',
-    isVictory: true,
-    resultDetails: 'Q1: 18-12 | Q2: 22-16 | Q3: 15-20 | Q4: 23-16',
+    // Result template (Récapitulatif des scores du week-end)
+    resultTitleMain: 'RÉSULTATS',
+    resultTitleSub: 'DU WEEK-END',
+    resultsList: [
+      { id: 'res-1', category: 'U11 F', opponent: 'vs ARRAS', score: '56-42', isVictory: true },
+      { id: 'res-2', category: 'U13 M', opponent: 'à DOUAI', score: '61-58', isVictory: true },
+      { id: 'res-3', category: 'U15 M', opponent: 'vs LIÉVIN', score: '48-63', isVictory: false },
+      { id: 'res-4', category: 'U17 F', opponent: 'à BÉTHUNE', score: '72-49', isVictory: true },
+      { id: 'res-5', category: 'U18 F', opponent: 'vs LENS', score: '59-47', isVictory: true },
+      { id: 'res-6', category: 'SENIORS A', opponent: 'vs DOUAI', score: '78-64', isVictory: true },
+      { id: 'res-7', category: 'SENIORS B', opponent: 'à HÉNIN', score: '66-53', isVictory: true },
+      { id: 'res-8', category: 'U9', opponent: 'vs ARRAS', score: '34-18', isVictory: true },
+      { id: 'res-9', category: 'U11 M', opponent: 'à LIÉVIN', score: '32-50', isVictory: false },
+      { id: 'res-10', category: 'U13 F', opponent: 'vs BÉTHUNE', score: '41-55', isVictory: false },
+      { id: 'res-11', category: 'U15 F', opponent: 'à LENS', score: '60-44', isVictory: true },
+      { id: 'res-12', category: 'U18 M', opponent: 'vs DOUAI', score: '69-57', isVictory: true }
+    ],
 
     // MVP template
     selectedMemberId: '',
@@ -184,9 +193,33 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   const totalSunPages = Math.ceil((config?.sundayMatches?.length || 0) / maxMatchesPerPage) || 1;
   const totalProgramPages = Math.max(totalSatPages, totalSunPages);
 
+  // Multi-page automatic calculation for results (jusqu'à 11 résultats par affiche)
+  const maxResultsPerPage = 11;
+  const totalResultPages = Math.ceil((config?.resultsList?.length || 0) / maxResultsPerPage) || 1;
+  const [currentResultPage, setCurrentResultPage] = useState(1);
+
   const canvasRef = useRef(null);
   const selectedMember = members.find(m => m.id === config.selectedMemberId);
   const customLogos = customAssets.filter(a => a.type === 'logo');
+
+  // -------------------------------------------------------------
+  // RESULT MANAGEMENT LOGIC
+  // -------------------------------------------------------------
+  const handleAddResult = () => {
+    const newR = { id: `res-${Date.now()}`, category: 'NOUVELLE ÉQUIPE', opponent: 'vs ADVERSAIRE', score: '50-50', isVictory: true };
+    setConfig(prev => ({ ...prev, resultsList: [...(prev.resultsList || []), newR] }));
+  };
+
+  const handleRemoveResult = (id) => {
+    setConfig(prev => ({ ...prev, resultsList: (prev.resultsList || []).filter(r => r.id !== id) }));
+  };
+
+  const handleUpdateResult = (id, field, val) => {
+    setConfig(prev => ({
+      ...prev,
+      resultsList: (prev.resultsList || []).map(r => r.id === id ? { ...r, [field]: val } : r)
+    }));
+  };
 
   // -------------------------------------------------------------
   // MATCH MANAGEMENT LOGIC
@@ -273,7 +306,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   };
 
   // Export active visual
-  const handleDownload = async (pageToExport = currentProgramPage) => {
+  const handleDownload = async (pageToExport = selectedTemplate.id === 'result' ? currentResultPage : currentProgramPage) => {
     const node = canvasRef.current;
     if (!node) return;
     setIsExporting(true);
@@ -287,7 +320,12 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
         allowTaint: true
       });
       const link = document.createElement('a');
-      const pageSuffix = totalProgramPages > 1 && selectedTemplate.id === 'weekend_program' ? `-page${pageToExport}` : '';
+      let pageSuffix = '';
+      if (selectedTemplate.id === 'weekend_program' && totalProgramPages > 1) {
+        pageSuffix = `-page${pageToExport}`;
+      } else if (selectedTemplate.id === 'result' && totalResultPages > 1) {
+        pageSuffix = `-page${pageToExport}`;
+      }
       link.download = `bcsn-${selectedTemplate.id}${pageSuffix}-${Date.now()}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
@@ -301,16 +339,19 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
   // Export all pages sequentially (Carrousel Multi-Images)
   const handleDownloadAllPages = async () => {
-    if (totalProgramPages <= 1 || selectedTemplate.id !== 'weekend_program') {
+    const totalPages = selectedTemplate.id === 'result' ? totalResultPages : totalProgramPages;
+    const setPage = selectedTemplate.id === 'result' ? setCurrentResultPage : setCurrentProgramPage;
+    const initialPage = selectedTemplate.id === 'result' ? currentResultPage : currentProgramPage;
+
+    if (totalPages <= 1) {
       handleDownload(1);
       return;
     }
     setIsExporting(true);
-    const initialPage = currentProgramPage;
     try {
       const { default: html2canvas } = await import('html2canvas');
-      for (let p = 1; p <= totalProgramPages; p++) {
-        setCurrentProgramPage(p);
+      for (let p = 1; p <= totalPages; p++) {
+        setPage(p);
         await new Promise(r => setTimeout(r, 260));
         const node = canvasRef.current;
         if (node) {
@@ -322,7 +363,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             allowTaint: true
           });
           const link = document.createElement('a');
-          link.download = `bcsn-programme-partie${p}-sur-${totalProgramPages}-${Date.now()}.png`;
+          link.download = `bcsn-${selectedTemplate.id}-partie${p}-sur-${totalPages}-${Date.now()}.png`;
           link.href = canvas.toDataURL('image/png');
           link.click();
         }
@@ -331,7 +372,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
       console.error('Erreur export multi-pages:', err);
       alert("Erreur lors de l'exportation de toutes les pages.");
     } finally {
-      setCurrentProgramPage(initialPage);
+      setPage(initialPage);
       setIsExporting(false);
     }
   };
@@ -358,11 +399,10 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           `Tous derrière le BCSN ! Venez faire du bruit ! 💚🤍\n\n${hashtag}`;
 
       case 'result':
-        return `${config.isVictory ? '🔥 VICTOIRE DU BCSN ! 🔥' : 'FIN DU MATCH'}\n\n` +
-          `${config.resultCategory}\n` +
-          `Score Final : ${config.resultHomeTeam} ${config.scoreHome} - ${config.scoreAway} ${config.resultAwayTeam}\n` +
-          `${config.resultDetails ? `${config.resultDetails}\n` : ''}\n` +
-          `Bravo à l'équipe pour cette prestation !\n\n${hashtag}`;
+        return `🔥 RÉSULTATS DU WEEK-END 🔥\n\n` +
+          (config.resultsList || []).map(r => `${r.isVictory ? '✅' : '❌'} ${r.category} | ${r.opponent} | ${r.score} (${r.isVictory ? 'VICTOIRE' : 'DÉFAITE'})`).join('\n') +
+          (totalResultPages > 1 ? `\n\n👉 Faites glisser le carrousel pour voir toutes les fiches résultats (Parties 1 à ${totalResultPages}) ! 📲` : '') +
+          `\n\nFélicitations à toutes nos équipes pour leurs performances ! 💚🤍\n\n${hashtag}`;
 
       case 'player_mvp':
         return `⭐ MVP DU MATCH ⭐\n\n` +
@@ -768,60 +808,364 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     );
   };
 
-  // 3. RÉSULTAT & SCORE
+  // 3. RÉSULTAT & SCORE (RECAP DES SCORES)
   const renderResultGraphic = () => {
+    const isDark = selectedTheme.id === 'dark_arena';
+    const isStory = selectedFormat.id === 'story';
+    const isPost = selectedFormat.id === 'post';
+
+    const safePage = Math.min(Math.max(currentResultPage, 1), totalResultPages);
+    const paginatedResults = (config.resultsList || []).slice((safePage - 1) * maxResultsPerPage, safePage * maxResultsPerPage);
+
+    // Split the paginated results into 2 columns: column 1 (up to 6 items) and column 2 (remaining items)
+    const col1 = paginatedResults.slice(0, 6);
+    const col2 = paginatedResults.slice(6, 11);
+
     return (
       <div style={{
-        width: '100%', height: '100%',
-        backgroundColor: '#070A0F',
-        backgroundImage: 'radial-gradient(circle at 50% 20%, #10241B 0%, #06090D 100%)',
-        position: 'relative', overflow: 'hidden',
-        display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-        padding: '24px 20px', color: '#FFFFFF', fontFamily: "'Outfit', sans-serif"
+        width: '100%',
+        height: '100%',
+        backgroundColor: isDark ? '#0A0D12' : '#FFFFFF',
+        backgroundImage: isDark 
+          ? 'radial-gradient(circle at 50% 20%, #111A24 0%, #07090C 100%)' 
+          : `url(${fondImg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: isStory ? '24px 16px 14px 16px' : isPost ? '12px 12px' : '16px 16px 12px 16px',
+        boxSizing: 'border-box',
+        fontFamily: "'Outfit', sans-serif",
+        color: isDark ? '#FFFFFF' : '#1E293B'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <BcsnOfficialLogo isDark size={46} customLogoUrl={customLogoUrl} />
+        {/* HEADER BRANDING */}
+        <div style={{ position: 'relative', zIndex: 5, textAlign: 'center', marginBottom: 4 }}>
+          {/* Logo officiel du club */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 3 }}>
+            <BcsnOfficialLogo isDark={isDark} size={isStory ? 60 : isPost ? 46 : 54} customLogoUrl={customLogoUrl} />
+          </div>
+
+          {/* Titre Principal RÉSULTATS DU WEEK-END */}
           <div style={{
-            background: config.isVictory ? '#10B981' : '#EF4444',
-            color: '#000', fontWeight: 900, fontSize: 11, padding: '4px 12px', borderRadius: 4, letterSpacing: 1
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontStyle: 'italic',
+            fontWeight: 900,
+            fontSize: isStory ? 36 : isPost ? 28 : 32,
+            lineHeight: 0.95,
+            letterSpacing: 1.5,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 2
           }}>
-            {config.isVictory ? 'VICTOIRE' : 'FIN DE MATCH'}
+            <span style={{ color: isDark ? '#10B981' : homeColor, fontSize: isStory ? 38 : isPost ? 30 : 34 }}>
+              {config.resultTitleMain}
+            </span>
+            <span style={{ color: awayColor, fontSize: isStory ? 24 : isPost ? 18 : 22, marginTop: -2 }}>
+              {config.resultTitleSub}
+              {totalResultPages > 1 && (
+                <span style={{
+                  fontFamily: "'Outfit', sans-serif",
+                  fontStyle: 'normal',
+                  fontSize: 9.5,
+                  fontWeight: 900,
+                  background: '#D62828',
+                  color: '#FFFFFF',
+                  padding: '2px 7px',
+                  borderRadius: 4,
+                  letterSpacing: 0.5,
+                  marginLeft: 6,
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                  verticalAlign: 'middle'
+                }}>
+                  PARTIE {safePage}/{totalResultPages}
+                </span>
+              )}
+            </span>
+          </div>
+
+          {/* Social Ribbon */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 10,
+            background: isDark ? 'rgba(16,185,129,0.18)' : '#0B4D3B',
+            color: '#FFFFFF',
+            border: isDark ? '1px solid rgba(16,185,129,0.4)' : 'none',
+            borderRadius: 6,
+            padding: '3px 12px',
+            marginTop: 6,
+            fontSize: 9,
+            fontWeight: 800,
+            letterSpacing: 0.5,
+            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Icon icon="ph:basketball-bold" width="12" height="12" color="#FFFFFF" />
+              <span>{config.clubSocialName}</span>
+            </div>
+            <span style={{ opacity: 0.5 }}>|</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Icon icon="ph:instagram-logo-bold" width="12" height="12" color="#FFFFFF" />
+              <span>{config.clubInstagram}</span>
+            </div>
           </div>
         </div>
 
-        <div style={{ textAlign: 'center', margin: 'auto 0' }}>
-          <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.8, marginBottom: 8 }}>
-            {config.resultCategory}
+        {/* 2 COLONNES DE RÉSULTATS */}
+        <div style={{
+          position: 'relative',
+          zIndex: 5,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 10,
+          flex: 1,
+          margin: '6px 0 8px 0',
+          alignItems: 'start',
+          width: '100%',
+          boxSizing: 'border-box'
+        }}>
+          {/* COLONNE 1 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+            {col1.map((r) => {
+              const matchColor = r.isVictory ? homeColor : awayColor;
+              return (
+                <div key={r.id} style={{
+                  background: isDark ? 'rgba(255,255,255,0.04)' : '#FFFFFF',
+                  borderRadius: 6,
+                  padding: '3px 6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 3,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  border: isDark ? '1px solid rgba(255,255,255,0.08)' : `1px solid rgba(0,0,0,0.06)`,
+                  minHeight: 27,
+                  boxSizing: 'border-box'
+                }}>
+                  {/* Left side (Status check/cross + Category + Opponent) */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', flex: 1, minWidth: 0 }}>
+                    {/* Status Circle */}
+                    <div style={{
+                      width: 15,
+                      height: 15,
+                      borderRadius: '50%',
+                      background: r.isVictory ? '#10B981' : '#D62828',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Icon icon={r.isVictory ? "ph:check-bold" : "ph:x-bold"} width="9.5" height="9.5" color="#FFFFFF" />
+                    </div>
+
+                    {/* Category */}
+                    <div style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: 13,
+                      fontWeight: 900,
+                      color: r.isVictory ? (isDark ? '#10B981' : homeColor) : awayColor,
+                      letterSpacing: 0.3,
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1,
+                      flexShrink: 0
+                    }}>
+                      {r.category}
+                    </div>
+
+                    {/* Separator */}
+                    <span style={{ color: isDark ? '#4B5563' : '#CBD5E1', fontSize: 8 }}>|</span>
+
+                    {/* Opponent */}
+                    <div style={{
+                      fontSize: 8,
+                      fontWeight: 600,
+                      color: isDark ? '#94A3B8' : '#64748B',
+                      textTransform: 'uppercase',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      fontFamily: "'Inter', sans-serif"
+                    }}>
+                      {r.opponent}
+                    </div>
+                  </div>
+
+                  {/* Right side (Score Pill) */}
+                  <div style={{
+                    background: r.isVictory ? (isDark ? '#10B981' : homeColor) : awayColor,
+                    color: '#FFFFFF',
+                    borderRadius: 4,
+                    padding: '2px 6px',
+                    fontSize: 9.5,
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontWeight: 900,
+                    letterSpacing: 0.5,
+                    lineHeight: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: 38,
+                    textAlign: 'center',
+                    flexShrink: 0
+                  }}>
+                    {r.score}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-            <div style={{ flex: 1, background: 'rgba(0,0,0,0.6)', padding: '12px 10px', borderRadius: 12, border: `2px solid ${config.isVictory ? '#10B981' : 'rgba(255,255,255,0.1)'}` }}>
-              <div style={{ fontSize: 14, fontWeight: 900 }}>{config.resultHomeTeam}</div>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 56, fontWeight: 900, color: config.isVictory ? '#10B981' : '#FFF', lineHeight: 1 }}>
-                {config.scoreHome}
-              </div>
-            </div>
+          {/* COLONNE 2 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+            {col2.map((r) => {
+              const matchColor = r.isVictory ? homeColor : awayColor;
+              return (
+                <div key={r.id} style={{
+                  background: isDark ? 'rgba(255,255,255,0.04)' : '#FFFFFF',
+                  borderRadius: 6,
+                  padding: '3px 6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 3,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  border: isDark ? '1px solid rgba(255,255,255,0.08)' : `1px solid rgba(0,0,0,0.06)`,
+                  minHeight: 27,
+                  boxSizing: 'border-box'
+                }}>
+                  {/* Left side (Status check/cross + Category + Opponent) */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', flex: 1, minWidth: 0 }}>
+                    {/* Status Circle */}
+                    <div style={{
+                      width: 15,
+                      height: 15,
+                      borderRadius: '50%',
+                      background: r.isVictory ? '#10B981' : '#D62828',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Icon icon={r.isVictory ? "ph:check-bold" : "ph:x-bold"} width="9.5" height="9.5" color="#FFFFFF" />
+                    </div>
 
-            <div style={{ fontSize: 18, fontWeight: 900, opacity: 0.4 }}>-</div>
+                    {/* Category */}
+                    <div style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: 13,
+                      fontWeight: 900,
+                      color: r.isVictory ? (isDark ? '#10B981' : homeColor) : awayColor,
+                      letterSpacing: 0.3,
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1,
+                      flexShrink: 0
+                    }}>
+                      {r.category}
+                    </div>
 
-            <div style={{ flex: 1, background: 'rgba(0,0,0,0.6)', padding: '12px 10px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div style={{ fontSize: 14, fontWeight: 900 }}>{config.resultAwayTeam}</div>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 56, fontWeight: 900, lineHeight: 1 }}>
-                {config.scoreAway}
-              </div>
-            </div>
+                    {/* Separator */}
+                    <span style={{ color: isDark ? '#4B5563' : '#CBD5E1', fontSize: 8 }}>|</span>
+
+                    {/* Opponent */}
+                    <div style={{
+                      fontSize: 8,
+                      fontWeight: 600,
+                      color: isDark ? '#94A3B8' : '#64748B',
+                      textTransform: 'uppercase',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      fontFamily: "'Inter', sans-serif"
+                    }}>
+                      {r.opponent}
+                    </div>
+                  </div>
+
+                  {/* Right side (Score Pill) */}
+                  <div style={{
+                    background: r.isVictory ? (isDark ? '#10B981' : homeColor) : awayColor,
+                    color: '#FFFFFF',
+                    borderRadius: 4,
+                    padding: '2px 6px',
+                    fontSize: 9.5,
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontWeight: 900,
+                    letterSpacing: 0.5,
+                    lineHeight: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: 38,
+                    textAlign: 'center',
+                    flexShrink: 0
+                  }}>
+                    {r.score}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-
-          {config.resultDetails && (
-            <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '6px 12px', display: 'inline-block', marginTop: 14, fontSize: 10, opacity: 0.85 }}>
-              {config.resultDetails}
-            </div>
-          )}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, opacity: 0.6, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8 }}>
-          <span>#BCSN #VICTOIRE</span>
-          <span>BASKET CLUB ST NICOLAS</span>
+        {/* BOTTOM SECTION */}
+        <div style={{ position: 'relative', zIndex: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          {/* Victory/Defeat Legend */}
+          <div style={{
+            background: isDark ? 'rgba(0,0,0,0.6)' : '#FFFFFF',
+            borderRadius: 6,
+            padding: '3.5px 12px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 12,
+            fontSize: 8.5,
+            fontFamily: "'Inter', sans-serif",
+            boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+            border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.06)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 13, height: 13, borderRadius: '50%', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon icon="ph:check-bold" width="8" height="8" color="#FFFFFF" />
+              </div>
+              <span style={{ color: '#10B981', fontWeight: 900, textTransform: 'uppercase', fontSize: 7.5 }}>VICTOIRE</span>
+            </div>
+            <span style={{ color: isDark ? '#4B5563' : '#CBD5E1' }}>|</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 13, height: 13, borderRadius: '50%', background: '#D62828', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon icon="ph:x-bold" width="8" height="8" color="#FFFFFF" />
+              </div>
+              <span style={{ color: '#D62828', fontWeight: 900, textTransform: 'uppercase', fontSize: 7.5 }}>DÉFAITE</span>
+            </div>
+          </div>
+
+          {/* Inspirational Text (Green & Red paint banners style) */}
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <div style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontStyle: 'italic',
+              fontWeight: 900,
+              fontSize: 16,
+              color: isDark ? '#10B981' : homeColor,
+              letterSpacing: 1.5
+            }}>
+              BRAVO À TOUTES LES ÉQUIPES !
+            </div>
+            <div style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontStyle: 'italic',
+              fontWeight: 900,
+              fontSize: 12,
+              color: awayColor,
+              letterSpacing: 1
+            }}>
+              MERCI POUR VOTRE SOUTIEN !
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1189,23 +1533,48 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
             {/* TEMPLATE 3 : RESULT */}
             {selectedTemplate.id === 'result' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div className="grid-2">
-                  <input className="input" value={config.resultCategory} onChange={e => setConfig({...config, resultCategory: e.target.value})} placeholder="Catégorie" />
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    <button className={`btn btn-sm ${config.isVictory ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setConfig({...config, isVictory: true})} style={{ flex: 1 }}>Victoire</button>
-                    <button className={`btn btn-sm ${!config.isVictory ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setConfig({...config, isVictory: false})} style={{ flex: 1 }}>Défaite</button>
-                  </div>
+                  <input className="input" value={config.resultTitleMain} onChange={e => setConfig({...config, resultTitleMain: e.target.value})} placeholder="Titre principal" />
+                  <input className="input" value={config.resultTitleSub} onChange={e => setConfig({...config, resultTitleSub: e.target.value})} placeholder="Sous-titre" />
                 </div>
-                <div className="grid-2">
-                  <input className="input" value={config.resultHomeTeam} onChange={e => setConfig({...config, resultHomeTeam: e.target.value})} placeholder="Équipe 1" />
-                  <input className="input" value={config.resultAwayTeam} onChange={e => setConfig({...config, resultAwayTeam: e.target.value})} placeholder="Équipe 2" />
+                
+                <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.6, marginTop: 4 }}>
+                  Liste des résultats du week-end ({config.resultsList?.length || 0} matchs)
+                </span>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 300, overflowY: 'auto', paddingRight: 4 }}>
+                  {(config.resultsList || []).map((r) => (
+                    <div key={r.id} style={{ background: 'var(--bg-card)', padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <input className="input" style={{ width: 80, fontSize: 11, padding: 4 }} value={r.category} onChange={e => handleUpdateResult(r.id, 'category', e.target.value)} placeholder="Catégorie" />
+                      <input className="input" style={{ flex: 1, fontSize: 11, padding: 4 }} value={r.opponent} onChange={e => handleUpdateResult(r.id, 'opponent', e.target.value)} placeholder="Opposant" />
+                      <input className="input" style={{ width: 60, fontSize: 11, padding: 4 }} value={r.score} onChange={e => handleUpdateResult(r.id, 'score', e.target.value)} placeholder="Score" />
+                      
+                      <button
+                        className="btn btn-sm"
+                        style={{
+                          fontSize: 9, padding: '3px 6px',
+                          background: r.isVictory ? 'rgba(11,77,59,0.2)' : 'rgba(214,40,40,0.2)',
+                          color: r.isVictory ? '#10B981' : '#D62828',
+                          border: `1px solid ${r.isVictory ? '#10B981' : '#D62828'}`
+                        }}
+                        onClick={() => handleUpdateResult(r.id, 'isVictory', !r.isVictory)}
+                      >
+                        {r.isVictory ? 'VIC' : 'DÉF'}
+                      </button>
+                      
+                      {config.resultsList.length > 1 && (
+                        <button onClick={() => handleRemoveResult(r.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: 2 }}>
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div className="grid-2">
-                  <input className="input" type="number" value={config.scoreHome} onChange={e => setConfig({...config, scoreHome: e.target.value})} placeholder="Score 1" />
-                  <input className="input" type="number" value={config.scoreAway} onChange={e => setConfig({...config, scoreAway: e.target.value})} placeholder="Score 2" />
-                </div>
-                <input className="input" value={config.resultDetails} onChange={e => setConfig({...config, resultDetails: e.target.value})} placeholder="Détails Q1 à Q4" />
+                
+                <button className="btn btn-secondary btn-sm" onClick={handleAddResult} style={{ justifyContent: 'center' }}>
+                  <Plus size={13} /> Ajouter un résultat
+                </button>
               </div>
             )}
 
@@ -1276,15 +1645,15 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             </div>
 
             {/* Export Buttons */}
-            {selectedTemplate.id === 'weekend_program' && totalProgramPages > 1 ? (
+            {(selectedTemplate.id === 'weekend_program' && totalProgramPages > 1) || (selectedTemplate.id === 'result' && totalResultPages > 1) ? (
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <button 
                   className="btn btn-secondary btn-sm" 
-                  onClick={() => handleDownload(currentProgramPage)} 
+                  onClick={() => handleDownload(selectedTemplate.id === 'result' ? currentResultPage : currentProgramPage)} 
                   disabled={isExporting}
                   style={{ fontWeight: 700 }}
                 >
-                  <Download size={14} /> Page {currentProgramPage}
+                  <Download size={14} /> Page {selectedTemplate.id === 'result' ? currentResultPage : currentProgramPage}
                 </button>
                 <button 
                   className="btn btn-primary btn-sm" 
@@ -1293,7 +1662,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                   style={{ boxShadow: '0 4px 14px rgba(11,77,59,0.35)', fontWeight: 800 }}
                 >
                   {isExporting ? <RefreshCw size={14} className="spin" /> : <Layers size={14} />}
-                  {isExporting ? 'Export...' : `Exporter Tout (${totalProgramPages} PNGs)`}
+                  {isExporting ? 'Export...' : `Exporter Tout (${selectedTemplate.id === 'result' ? totalResultPages : totalProgramPages} PNGs)`}
                 </button>
               </div>
             ) : (
@@ -1308,7 +1677,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
               </button>
             )}
           </div>
-
+ 
           {/* Multi-Page Navigation Bar if matches exceed 1 poster */}
           {selectedTemplate.id === 'weekend_program' && totalProgramPages > 1 && (
             <div style={{
@@ -1324,9 +1693,9 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#10B981', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Zap size={14} />
-                <span>{config.saturdayMatches.length + config.sundayMatches.length} matchs : 2 affiches générées automatiquement</span>
+                <span>{config.saturdayMatches.length + config.sundayMatches.length} matchs : {totalProgramPages} affiches générées automatiquement</span>
               </div>
-
+ 
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 {Array.from({ length: totalProgramPages }).map((_, idx) => {
                   const pNum = idx + 1;
@@ -1339,6 +1708,43 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                       style={{ fontSize: 10, padding: '2px 8px', fontWeight: 800 }}
                     >
                       Partie {pNum} / {totalProgramPages}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Multi-Page Navigation Bar for results */}
+          {selectedTemplate.id === 'result' && totalResultPages > 1 && (
+            <div style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'rgba(16,185,129,0.08)',
+              border: '1px solid rgba(16,185,129,0.25)',
+              padding: '6px 12px',
+              borderRadius: 8,
+              gap: 8
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#10B981', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Zap size={14} />
+                <span>{config.resultsList.length} résultats : {totalResultPages} affiches générées automatiquement</span>
+              </div>
+ 
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {Array.from({ length: totalResultPages }).map((_, idx) => {
+                  const pNum = idx + 1;
+                  const isCur = currentResultPage === pNum;
+                  return (
+                    <button
+                      key={pNum}
+                      className={`btn btn-sm ${isCur ? 'btn-primary' : 'btn-secondary'}`}
+                      onClick={() => setCurrentResultPage(pNum)}
+                      style={{ fontSize: 10, padding: '2px 8px', fontWeight: 800 }}
+                    >
+                      Partie {pNum} / {totalResultPages}
                     </button>
                   );
                 })}
