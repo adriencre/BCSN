@@ -105,6 +105,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   const [selectedFormat, setSelectedFormat] = useState(FORMATS[0]); // Affiche 4:5
   const [selectedTheme, setSelectedTheme] = useState(THEMES[0]);
   const [activeDayTab, setActiveDayTab] = useState('saturday'); // 'saturday' | 'sunday'
+  const [currentProgramPage, setCurrentProgramPage] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
   const [copiedCaption, setCopiedCaption] = useState(false);
   const [customLogoUrl, setCustomLogoUrl] = useState('');
@@ -112,6 +113,12 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   // Primary colors
   const [homeColor, setHomeColor] = useState('#0B4D3B');
   const [awayColor, setAwayColor] = useState('#D62828');
+
+  // Multi-page automatic calculation (max 6 matches per day column per poster)
+  const maxMatchesPerPage = 6;
+  const totalSatPages = Math.ceil(config?.saturdayMatches?.length / maxMatchesPerPage) || 1;
+  const totalSunPages = Math.ceil(config?.sundayMatches?.length / maxMatchesPerPage) || 1;
+  const totalProgramPages = Math.max(totalSatPages, totalSunPages);
 
   // Master Studio Configuration
   const [config, setConfig] = useState({
@@ -261,11 +268,12 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
       saturdayMatches: newSat.length > 0 ? newSat : prev.saturdayMatches,
       sundayMatches: newSun.length > 0 ? newSun : prev.sundayMatches,
     }));
+    setCurrentProgramPage(1);
     alert(`Importation réussie : ${newSat.length} matchs le samedi, ${newSun.length} matchs le dimanche !`);
   };
 
-  // Export high resolution PNG
-  const handleDownload = async () => {
+  // Export active visual
+  const handleDownload = async (pageToExport = currentProgramPage) => {
     const node = canvasRef.current;
     if (!node) return;
     setIsExporting(true);
@@ -279,13 +287,51 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
         allowTaint: true
       });
       const link = document.createElement('a');
-      link.download = `bcsn-${selectedTemplate.id}-${Date.now()}.png`;
+      const pageSuffix = totalProgramPages > 1 && selectedTemplate.id === 'weekend_program' ? `-page${pageToExport}` : '';
+      link.download = `bcsn-${selectedTemplate.id}${pageSuffix}-${Date.now()}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (err) {
       console.error('Erreur export PNG:', err);
       alert("Erreur lors de l'exportation du visuel.");
     } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Export all pages sequentially (Carrousel Multi-Images)
+  const handleDownloadAllPages = async () => {
+    if (totalProgramPages <= 1 || selectedTemplate.id !== 'weekend_program') {
+      handleDownload(1);
+      return;
+    }
+    setIsExporting(true);
+    const initialPage = currentProgramPage;
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      for (let p = 1; p <= totalProgramPages; p++) {
+        setCurrentProgramPage(p);
+        await new Promise(r => setTimeout(r, 260));
+        const node = canvasRef.current;
+        if (node) {
+          const canvas = await html2canvas(node, { 
+            backgroundColor: null, 
+            scale: 3.5, 
+            useCORS: true,
+            logging: false,
+            allowTaint: true
+          });
+          const link = document.createElement('a');
+          link.download = `bcsn-programme-partie${p}-sur-${totalProgramPages}-${Date.now()}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }
+      }
+    } catch (err) {
+      console.error('Erreur export multi-pages:', err);
+      alert("Erreur lors de l'exportation de toutes les pages.");
+    } finally {
+      setCurrentProgramPage(initialPage);
       setIsExporting(false);
     }
   };
@@ -300,6 +346,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           config.saturdayMatches.map(m => `🏀 ${m.category} | ${m.time} | ${m.opponent} (${m.isHome ? 'DOMICILE' : 'EXTÉRIEUR'})`).join('\n') +
           `\n\n📅 DIMANCHE :\n` +
           config.sundayMatches.map(m => `🏀 ${m.category} | ${m.time} | ${m.opponent} (${m.isHome ? 'DOMICILE' : 'EXTÉRIEUR'})`).join('\n') +
+          (totalProgramPages > 1 ? `\n\n👉 Faites glisser le carrousel pour voir toutes les affiches (Parties 1 à ${totalProgramPages}) ! 📲` : '') +
           `\n\n📍 Venez nombreux enflammer le gymnase et encourager nos équipes ! 💚🤍\n\n${hashtag}`;
 
       case 'match_day':
@@ -348,6 +395,10 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     const isStory = selectedFormat.id === 'story';
     const isPost = selectedFormat.id === 'post';
 
+    const safePage = Math.min(Math.max(currentProgramPage, 1), totalProgramPages);
+    const paginatedSatMatches = config.saturdayMatches.slice((safePage - 1) * maxMatchesPerPage, safePage * maxMatchesPerPage);
+    const paginatedSunMatches = config.sundayMatches.slice((safePage - 1) * maxMatchesPerPage, safePage * maxMatchesPerPage);
+
     return (
       <div style={{
         width: '100%',
@@ -376,7 +427,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             <BcsnOfficialLogo isDark={isDark} size={isStory ? 68 : isPost ? 54 : 62} customLogoUrl={customLogoUrl} />
           </div>
 
-          {/* Titre Principal */}
+          {/* Titre Principal + Badge Multi-Page */}
           <div style={{
             fontFamily: "'Bebas Neue', sans-serif",
             fontStyle: 'italic',
@@ -391,6 +442,23 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           }}>
             <span style={{ color: isDark ? '#10B981' : homeColor }}>{config.programTitleMain}</span>
             <span style={{ color: awayColor }}>{config.programTitleSub}</span>
+            {totalProgramPages > 1 && (
+              <span style={{
+                fontFamily: "'Outfit', sans-serif",
+                fontStyle: 'normal',
+                fontSize: 10,
+                fontWeight: 900,
+                background: '#D62828',
+                color: '#FFFFFF',
+                padding: '2px 8px',
+                borderRadius: 6,
+                letterSpacing: 0.5,
+                marginLeft: 4,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.15)'
+              }}>
+                PARTIE {safePage}/{totalProgramPages}
+              </span>
+            )}
           </div>
 
           {/* Social Ribbon : Rectiligne & Élégant */}
@@ -456,7 +524,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
             {/* List of Saturday Matches */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {config.saturdayMatches.map((m) => {
+              {paginatedSatMatches.map((m) => {
                 const matchColor = m.isHome ? (isDark ? '#10B981' : homeColor) : awayColor;
                 return (
                   <div key={m.id} style={{
@@ -509,6 +577,11 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                   </div>
                 );
               })}
+              {paginatedSatMatches.length === 0 && (
+                <div style={{ textAlign: 'center', fontSize: 10, opacity: 0.5, padding: 8, fontStyle: 'italic' }}>
+                  Aucun match supplémentaire le samedi
+                </div>
+              )}
             </div>
           </div>
 
@@ -534,7 +607,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
             {/* List of Sunday Matches */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {config.sundayMatches.map((m) => {
+              {paginatedSunMatches.map((m) => {
                 const matchColor = m.isHome ? (isDark ? '#10B981' : homeColor) : awayColor;
                 return (
                   <div key={m.id} style={{
@@ -587,6 +660,11 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                   </div>
                 );
               })}
+              {paginatedSunMatches.length === 0 && (
+                <div style={{ textAlign: 'center', fontSize: 10, opacity: 0.5, padding: 8, fontStyle: 'italic' }}>
+                  Aucun match supplémentaire le dimanche
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1197,16 +1275,76 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
               <span style={{ fontWeight: 800, fontSize: 14 }}>Aperçu HD Live ({selectedFormat.label})</span>
             </div>
 
-            <button 
-              className="btn btn-primary" 
-              onClick={handleDownload} 
-              disabled={isExporting}
-              style={{ boxShadow: '0 4px 14px rgba(11,77,59,0.35)', fontWeight: 800 }}
-            >
-              {isExporting ? <RefreshCw size={15} className="spin" /> : <Download size={15} />}
-              {isExporting ? 'Génération...' : 'Exporter PNG 4K'}
-            </button>
+            {/* Export Buttons */}
+            {selectedTemplate.id === 'weekend_program' && totalProgramPages > 1 ? (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <button 
+                  className="btn btn-secondary btn-sm" 
+                  onClick={() => handleDownload(currentProgramPage)} 
+                  disabled={isExporting}
+                  style={{ fontWeight: 700 }}
+                >
+                  <Download size={14} /> Page {currentProgramPage}
+                </button>
+                <button 
+                  className="btn btn-primary btn-sm" 
+                  onClick={handleDownloadAllPages} 
+                  disabled={isExporting}
+                  style={{ boxShadow: '0 4px 14px rgba(11,77,59,0.35)', fontWeight: 800 }}
+                >
+                  {isExporting ? <RefreshCw size={14} className="spin" /> : <Layers size={14} />}
+                  {isExporting ? 'Export...' : `Exporter Tout (${totalProgramPages} PNGs)`}
+                </button>
+              </div>
+            ) : (
+              <button 
+                className="btn btn-primary" 
+                onClick={() => handleDownload(1)} 
+                disabled={isExporting}
+                style={{ boxShadow: '0 4px 14px rgba(11,77,59,0.35)', fontWeight: 800 }}
+              >
+                {isExporting ? <RefreshCw size={15} className="spin" /> : <Download size={15} />}
+                {isExporting ? 'Génération...' : 'Exporter PNG 4K'}
+              </button>
+            )}
           </div>
+
+          {/* Multi-Page Navigation Bar if matches exceed 1 poster */}
+          {selectedTemplate.id === 'weekend_program' && totalProgramPages > 1 && (
+            <div style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'rgba(16,185,129,0.08)',
+              border: '1px solid rgba(16,185,129,0.25)',
+              padding: '6px 12px',
+              borderRadius: 8,
+              gap: 8
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#10B981', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Zap size={14} />
+                <span>{config.saturdayMatches.length + config.sundayMatches.length} matchs : 2 affiches générées automatiquement</span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {Array.from({ length: totalProgramPages }).map((_, idx) => {
+                  const pNum = idx + 1;
+                  const isCur = currentProgramPage === pNum;
+                  return (
+                    <button
+                      key={pNum}
+                      className={`btn btn-sm ${isCur ? 'btn-primary' : 'btn-secondary'}`}
+                      onClick={() => setCurrentProgramPage(pNum)}
+                      style={{ fontSize: 10, padding: '2px 8px', fontWeight: 800 }}
+                    >
+                      Partie {pNum} / {totalProgramPages}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Master Canvas Container */}
           <div 
