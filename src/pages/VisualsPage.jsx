@@ -193,8 +193,8 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   const totalSunPages = Math.ceil((config?.sundayMatches?.length || 0) / maxMatchesPerPage) || 1;
   const totalProgramPages = Math.max(totalSatPages, totalSunPages);
 
-  // Multi-page automatic calculation for results (jusqu'à 11 résultats par affiche)
-  const maxResultsPerPage = 11;
+  // Multi-page automatic calculation for results (jusqu'à 22 résultats par affiche, soit 11 par colonne)
+  const maxResultsPerPage = 22;
   const totalResultPages = Math.ceil((config?.resultsList?.length || 0) / maxResultsPerPage) || 1;
   const [currentResultPage, setCurrentResultPage] = useState(1);
 
@@ -817,9 +817,9 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     const safePage = Math.min(Math.max(currentResultPage, 1), totalResultPages);
     const paginatedResults = (config.resultsList || []).slice((safePage - 1) * maxResultsPerPage, safePage * maxResultsPerPage);
 
-    // Split the paginated results into 2 columns: column 1 (up to 6 items) and column 2 (remaining items)
-    const col1 = paginatedResults.slice(0, 6);
-    const col2 = paginatedResults.slice(6, 11);
+    // Split the paginated results into 2 columns: column 1 (up to 11 items) and column 2 (remaining items)
+    const col1 = paginatedResults.slice(0, 11);
+    const col2 = paginatedResults.slice(11, 22);
 
     return (
       <div style={{
@@ -840,7 +840,10 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
         padding: isStory ? '24px 16px 14px 16px' : isPost ? '12px 12px' : '16px 16px 12px 16px',
         boxSizing: 'border-box',
         fontFamily: "'Outfit', sans-serif",
-        color: isDark ? '#FFFFFF' : '#1E293B'
+        color: isDark ? '#FFFFFF' : '#1E293B',
+        textRendering: 'optimizeLegibility',
+        WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale'
       }}>
         {/* HEADER BRANDING */}
         <div style={{ position: 'relative', zIndex: 5, textAlign: 'center', marginBottom: 4 }}>
@@ -955,7 +958,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                       width: 15,
                       height: 15,
                       borderRadius: '50%',
-                      background: r.isVictory ? '#10B981' : '#D62828',
+                      background: r.isVictory ? homeColor : '#D62828',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -969,7 +972,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                       fontFamily: "'Bebas Neue', sans-serif",
                       fontSize: 13,
                       fontWeight: 900,
-                      color: r.isVictory ? (isDark ? '#10B981' : homeColor) : awayColor,
+                      color: r.isVictory ? homeColor : awayColor,
                       letterSpacing: 0.3,
                       whiteSpace: 'nowrap',
                       lineHeight: 1,
@@ -998,7 +1001,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
                   {/* Right side (Score Pill) */}
                   <div style={{
-                    background: r.isVictory ? (isDark ? '#10B981' : homeColor) : awayColor,
+                    background: r.isVictory ? homeColor : awayColor,
                     color: '#FFFFFF',
                     borderRadius: 4,
                     padding: '2px 6px',
@@ -1046,7 +1049,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                       width: 15,
                       height: 15,
                       borderRadius: '50%',
-                      background: r.isVictory ? '#10B981' : '#D62828',
+                      background: r.isVictory ? homeColor : '#D62828',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1060,7 +1063,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                       fontFamily: "'Bebas Neue', sans-serif",
                       fontSize: 13,
                       fontWeight: 900,
-                      color: r.isVictory ? (isDark ? '#10B981' : homeColor) : awayColor,
+                      color: r.isVictory ? homeColor : awayColor,
                       letterSpacing: 0.3,
                       whiteSpace: 'nowrap',
                       lineHeight: 1,
@@ -1089,7 +1092,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
                   {/* Right side (Score Pill) */}
                   <div style={{
-                    background: r.isVictory ? (isDark ? '#10B981' : homeColor) : awayColor,
+                    background: r.isVictory ? homeColor : awayColor,
                     color: '#FFFFFF',
                     borderRadius: 4,
                     padding: '2px 6px',
@@ -1129,10 +1132,10 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
             border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.06)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 13, height: 13, borderRadius: '50%', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 13, height: 13, borderRadius: '50%', background: homeColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon icon="ph:check-bold" width="8" height="8" color="#FFFFFF" />
               </div>
-              <span style={{ color: '#10B981', fontWeight: 900, textTransform: 'uppercase', fontSize: 7.5 }}>VICTOIRE</span>
+              <span style={{ color: homeColor, fontWeight: 900, textTransform: 'uppercase', fontSize: 7.5 }}>VICTOIRE</span>
             </div>
             <span style={{ color: isDark ? '#4B5563' : '#CBD5E1' }}>|</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -1150,7 +1153,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
               fontStyle: 'italic',
               fontWeight: 900,
               fontSize: 16,
-              color: isDark ? '#10B981' : homeColor,
+              color: '#FFFFFF',
               letterSpacing: 1.5
             }}>
               BRAVO À TOUTES LES ÉQUIPES !
