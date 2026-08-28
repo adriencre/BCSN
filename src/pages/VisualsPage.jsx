@@ -114,12 +114,6 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
   const [homeColor, setHomeColor] = useState('#0B4D3B');
   const [awayColor, setAwayColor] = useState('#D62828');
 
-  // Multi-page automatic calculation (max 6 matches per day column per poster)
-  const maxMatchesPerPage = 6;
-  const totalSatPages = Math.ceil(config?.saturdayMatches?.length / maxMatchesPerPage) || 1;
-  const totalSunPages = Math.ceil(config?.sundayMatches?.length / maxMatchesPerPage) || 1;
-  const totalProgramPages = Math.max(totalSatPages, totalSunPages);
-
   // Master Studio Configuration
   const [config, setConfig] = useState({
     // Program template
@@ -183,6 +177,12 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     announcementBody: 'Rejoignez-nous ce samedi à partir de 18h00 pour soutenir nos équipes seniors, avec buvette festive et tombola !',
     announcementFooter: '#BCSN #BASKETBALL #FAMILY',
   });
+
+  // Multi-page automatic calculation (max 6 matches per day column per poster)
+  const maxMatchesPerPage = 6;
+  const totalSatPages = Math.ceil((config?.saturdayMatches?.length || 0) / maxMatchesPerPage) || 1;
+  const totalSunPages = Math.ceil((config?.sundayMatches?.length || 0) / maxMatchesPerPage) || 1;
+  const totalProgramPages = Math.max(totalSatPages, totalSunPages);
 
   const canvasRef = useRef(null);
   const selectedMember = members.find(m => m.id === config.selectedMemberId);
