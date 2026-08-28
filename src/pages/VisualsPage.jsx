@@ -72,6 +72,7 @@ const THEMES = [
 ];
 
 import bcsnLogoImg from '../assets/bcsn.png';
+import fondImg from '../assets/fond.png';
 
 // -------------------------------------------------------------
 // LOGO OFFICIEL BCSN (HAUTE DÉFINITION)
@@ -351,10 +352,13 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
       <div style={{
         width: '100%',
         height: '100%',
-        backgroundColor: isDark ? '#0A0D12' : '#F7F8F7',
+        backgroundColor: isDark ? '#0A0D12' : '#FFFFFF',
         backgroundImage: isDark 
           ? 'radial-gradient(circle at 50% 20%, #111A24 0%, #07090C 100%)' 
-          : 'linear-gradient(180deg, #FFFFFF 0%, #F1F4F2 100%)',
+          : `url(${fondImg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         position: 'relative',
         overflow: 'hidden',
         display: 'flex',
@@ -365,27 +369,6 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
         fontFamily: "'Outfit', sans-serif",
         color: isDark ? '#FFFFFF' : '#1E293B'
       }}>
-        {/* Filigrane Ballon Discret Haut Gauche */}
-        <div style={{ position: 'absolute', top: -35, left: -45, width: 200, height: 200, opacity: isDark ? 0.03 : 0.05, pointerEvents: 'none', zIndex: 1 }}>
-          <svg viewBox="0 0 100 100" fill="none" stroke={isDark ? '#FFF' : '#0B4D3B'} strokeWidth="2">
-            <circle cx="50" cy="50" r="48" />
-            <line x1="2" y1="50" x2="98" y2="50" />
-            <line x1="50" y1="2" x2="50" y2="98" />
-            <path d="M16 16 C34 32, 34 68, 16 84" />
-            <path d="M84 16 C66 32, 66 68, 84 84" />
-          </svg>
-        </div>
-
-        {/* Filigrane Terrain Discret Bas Droite */}
-        <div style={{ position: 'absolute', bottom: -20, right: -25, width: 210, height: 150, pointerEvents: 'none', zIndex: 1, opacity: isDark ? 0.08 : 0.12 }}>
-          <svg viewBox="0 0 160 120" fill="none" stroke={isDark ? '#FFF' : '#0B4D3B'} strokeWidth="2">
-            <rect x="5" y="5" width="150" height="110" />
-            <path d="M40 5 L40 55 L120 55 L120 5 Z" />
-            <circle cx="80" cy="55" r="22" strokeDasharray="4 4" />
-            <path d="M10 5 C10 80, 150 80, 150 5" />
-          </svg>
-        </div>
-
         {/* HEADER BRANDING : 100% DROIT & CENTRÉ */}
         <div style={{ position: 'relative', zIndex: 5, textAlign: 'center', marginBottom: 6 }}>
           {/* Logo officiel du club */}
