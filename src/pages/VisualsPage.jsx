@@ -51,6 +51,14 @@ const TEMPLATES = [
     desc: 'Communiqué officiel & événements',
     color: '#0284C7'
   },
+  { 
+    id: 'player_portrait', 
+    name: 'Portrait Joueur de la Semaine', 
+    badge: 'Nouveau',
+    icon: 'ph:user-focus-bold', 
+    desc: 'Portrait, statistiques & Q&A personnalisés',
+    color: '#10B981'
+  },
 ];
 
 // -------------------------------------------------------------
@@ -188,6 +196,27 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     announcementTitle: 'GRANDE SOIRÉE DU CLUB',
     announcementBody: 'Rejoignez-nous ce samedi à partir de 18h00 pour soutenir nos équipes seniors, avec buvette festive et tombola !',
     announcementFooter: '#BCSN #BASKETBALL #FAMILY',
+
+    // Portrait Joueur de la Semaine template
+    portraitTitleMain: 'PORTRAIT',
+    portraitTitleSub: 'DU JOUEUR',
+    portraitTitleBadge: 'DE LA SEMAINE',
+    portraitNumber: '7',
+    portraitPlayerName: 'LÉO MARTIN',
+    portraitCategory: 'U15 A',
+    portraitPosition: 'POSTE MENEUR',
+    portraitSeniority: 'AU CLUB DEPUIS 4 ANS',
+    portraitQ1: 'POURQUOI LE BASKET ?',
+    portraitA1: 'Pour le plaisir du jeu et l\'esprit d\'équipe.',
+    portraitQ2: 'SON MEILLEUR SOUVENIR AVEC LE BCSN',
+    portraitA2: 'La victoire en finale départementale U13 avec toute l\'équipe, un moment incroyable !',
+    portraitQ3: 'SON OBJECTIF CETTE SAISON',
+    portraitA3: 'Continuer à progresser et aider l\'équipe à aller le plus loin possible.',
+    portraitQ4: 'SA MUSIQUE AVANT UN MATCH',
+    portraitA4: 'Ninho, SDM, Gazo',
+    portraitQ5: 'FUN FACT',
+    portraitA5: 'Je suis passionné par les sneakers et j\'ai plus de 30 paires !',
+    portraitSelectedMemberId: '',
   });
 
   // Multi-page automatic calculation (jusqu'à 11 matchs par colonne par affiche)
@@ -205,6 +234,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
 
   const canvasRef = useRef(null);
   const selectedMember = members.find(m => m.id === config.selectedMemberId);
+  const selectedPortraitMember = members.find(m => m.id === config.portraitSelectedMemberId);
   const customLogos = customAssets.filter(a => a.type === 'logo');
 
   // -------------------------------------------------------------
@@ -437,6 +467,16 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
           `• ${config.stat3Value} ${config.stat3Label}\n` +
           `• ${config.stat4Value} ${config.stat4Label}\n\n` +
           `Let's go BCSN ! 💚🤍\n\n${hashtag}`;
+
+      case 'player_portrait':
+        return `🌟 PORTRAIT DU JOUEUR DE LA SEMAINE 🌟\n\n` +
+          `Découvrez le portrait de ${selectedPortraitMember ? selectedPortraitMember.name : config.portraitPlayerName} (#${selectedPortraitMember ? (selectedPortraitMember.number || config.portraitNumber) : config.portraitNumber}), joueur en équipe ${selectedPortraitMember ? (selectedPortraitMember.team || config.portraitCategory) : config.portraitCategory} ! 🏀\n\n` +
+          `💬 "Pourquoi le basket ?" : ${config.portraitA1}\n` +
+          `🏆 "Son meilleur souvenir BCSN" : ${config.portraitA2}\n` +
+          `🎯 "Son objectif cette saison" : ${config.portraitA3}\n` +
+          `🎵 "Sa musique avant match" : ${config.portraitA4}\n` +
+          `😂 "Fun Fact" : ${config.portraitA5}\n\n` +
+          `Fiers d'avoir des profils comme lui au club ! À suivre sur les parquets ! 💚🤍\n\n${hashtag}`;
 
       default:
         return `📢 ${config.announcementTitle}\n\n${config.announcementBody}\n\n${hashtag}`;
@@ -1648,6 +1688,302 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     );
   };
 
+  // 6. PORTRAIT DU JOUEUR DE LA SEMAINE
+  const renderPortraitGraphic = () => {
+    const isDark = selectedTheme.id === 'dark_arena';
+    const isStory = selectedFormat.id === 'story';
+    const isPost = selectedFormat.id === 'post';
+
+    const playerNum = selectedPortraitMember ? (selectedPortraitMember.number || config.portraitNumber) : config.portraitNumber;
+    const playerName = selectedPortraitMember ? selectedPortraitMember.name : config.portraitPlayerName;
+    const playerCategory = selectedPortraitMember ? (selectedPortraitMember.team || config.portraitCategory) : config.portraitCategory;
+    const playerPosition = selectedPortraitMember ? (selectedPortraitMember.role || config.portraitPosition) : config.portraitPosition;
+    const playerPhoto = selectedPortraitMember ? selectedPortraitMember.photo : null;
+
+    return (
+      <div style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: isDark ? '#0A0D12' : '#FFFFFF',
+        backgroundImage: isDark 
+          ? 'radial-gradient(circle at 50% 20%, #111A24 0%, #07090C 100%)' 
+          : `url(${fondImg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: isStory ? '20px 14px 10px 14px' : isPost ? '10px 10px' : '14px 14px 10px 14px',
+        boxSizing: 'border-box',
+        fontFamily: "'Outfit', sans-serif",
+        color: isDark ? '#FFFFFF' : '#1E293B',
+        textRendering: 'optimizeLegibility',
+        WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale'
+      }}>
+        {/* BACKGROUND WATERMARK */}
+        {!isDark && (
+          <div style={{
+            position: 'absolute',
+            right: '-40px',
+            top: '40px',
+            opacity: 0.05,
+            pointerEvents: 'none',
+            zIndex: 1
+          }}>
+            <Icon icon="ph:basketball-fill" width="300" height="300" color="#0B4D3B" />
+          </div>
+        )}
+
+        {/* TOP AREA: LOGO + TITLE */}
+        <div style={{ position: 'relative', zIndex: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <BcsnOfficialLogo isDark={isDark} size={isStory ? 48 : isPost ? 36 : 42} customLogoUrl={customLogoUrl} />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', textAlign: 'right' }}>
+            <div style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontStyle: 'italic',
+              fontWeight: 900,
+              fontSize: isStory ? 34 : isPost ? 26 : 30,
+              lineHeight: 0.9,
+              letterSpacing: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end'
+            }}>
+              <span style={{ color: isDark ? '#10B981' : homeColor }}>{config.portraitTitleMain}</span>
+              <span style={{ color: isDark ? '#FFF' : '#1E293B' }}>{config.portraitTitleSub}</span>
+            </div>
+            
+            {/* Tag De la semaine */}
+            <div style={{
+              background: awayColor,
+              color: '#FFFFFF',
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: isStory ? 12 : isPost ? 9.5 : 11,
+              fontWeight: 900,
+              fontStyle: 'italic',
+              padding: '2.5px 12px',
+              borderRadius: 3,
+              letterSpacing: 1,
+              transform: 'rotate(-2deg)',
+              marginTop: 3,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+              {config.portraitTitleBadge}
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN BODY AREA (2 COLUMNS) */}
+        <div style={{
+          position: 'relative',
+          zIndex: 5,
+          display: 'flex',
+          gap: 12,
+          flex: 1,
+          alignItems: 'stretch',
+          margin: '8px 0',
+          width: '100%',
+          boxSizing: 'border-box'
+        }}>
+          {/* LEFT COLUMN: PLAYER PORTRAIT PHOTO */}
+          <div style={{
+            width: '42%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            position: 'relative'
+          }}>
+            {/* Main Picture Container */}
+            <div style={{
+              height: '92%',
+              width: '100%',
+              borderRadius: 12,
+              background: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
+              border: isDark ? '2px solid rgba(255,255,255,0.1)' : `3px solid ${homeColor}`,
+              boxShadow: '0 6px 16px rgba(0,0,0,0.06)',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative'
+            }}>
+              {playerPhoto ? (
+                <img src={playerPhoto} alt={playerName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                  <Icon icon="ph:user-bold" width="48" color={isDark ? '#10B981' : homeColor} style={{ opacity: 0.6 }} />
+                  <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.5 }}>BC SAINT NICOLAS</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: PLAYER NAME, METADATA BADGES & Q&A */}
+          <div style={{
+            width: '58%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: 6
+          }}>
+            {/* Player Name and Number */}
+            <div>
+              <div style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: isStory ? 34 : isPost ? 26 : 30,
+                fontWeight: 900,
+                color: isDark ? '#10B981' : homeColor,
+                letterSpacing: 1,
+                lineHeight: 0.9,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                flexWrap: 'wrap'
+              }}>
+                <span style={{ color: awayColor }}>#{playerNum}</span>
+                <span style={{ color: isDark ? '#FFF' : '#1E293B' }}>{playerName}</span>
+              </div>
+            </div>
+
+            {/* 4 Metadata Icons & Badges */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: 4,
+              borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
+              borderTop: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
+              padding: '4px 0'
+            }}>
+              {[
+                { icon: 'ph:users-three-bold', val: playerCategory, label: 'ÉQUIPE' },
+                { icon: 'ph:t-shirt-bold', val: `N° ${playerNum}`, label: 'NUMÉRO' },
+                { icon: 'ph:basketball-bold', val: playerPosition.replace('POSTE ', ''), label: 'POSTE' },
+                { icon: 'ph:calendar-bold', val: config.portraitSeniority.replace('AU CLUB ', ''), label: 'SENIORITÉ' }
+              ].map((item, idx) => (
+                <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', minWidth: 0 }}>
+                  <Icon icon={item.icon} width="14" height="14" color={isDark ? '#10B981' : homeColor} />
+                  <span style={{ fontSize: 6.5, fontWeight: 900, textTransform: 'uppercase', color: isDark ? '#FFF' : '#1E293B', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
+                    {item.val}
+                  </span>
+                  <span style={{ fontSize: 5, fontWeight: 700, color: isDark ? '#64748B' : '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.2 }}>
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Q&A List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, flex: 1, justifyContent: 'center' }}>
+              {[
+                { icon: 'ph:star-fill', title: config.portraitQ1, val: config.portraitA1 },
+                { icon: 'ph:trophy-fill', title: config.portraitQ2, val: config.portraitA2 },
+                { icon: 'ph:target-fill', title: config.portraitQ3, val: config.portraitA3 },
+                { icon: 'ph:music-note-simple-fill', title: config.portraitQ4, val: config.portraitA4 },
+                { icon: 'ph:smiley-fill', title: config.portraitQ5, val: config.portraitA5 }
+              ].map((qa, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                  {/* Circle Icon Badge */}
+                  <div style={{
+                    width: 15,
+                    height: 15,
+                    borderRadius: '50%',
+                    background: isDark ? 'rgba(16,185,129,0.15)' : homeColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    marginTop: 1
+                  }}>
+                    <Icon icon={qa.icon} width="9" height="9" color={isDark ? '#10B981' : '#FFFFFF'} />
+                  </div>
+
+                  {/* Question and Answer */}
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                    <div style={{
+                      fontSize: 7.5,
+                      fontWeight: 800,
+                      color: isDark ? '#10B981' : '#0F172A',
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.2,
+                      fontFamily: "'Outfit', sans-serif"
+                    }}>
+                      {qa.title}
+                    </div>
+                    <div style={{
+                      fontSize: 7,
+                      fontWeight: 500,
+                      color: isDark ? '#94A3B8' : '#475569',
+                      lineHeight: 1.15,
+                      marginTop: 1,
+                      fontStyle: 'italic',
+                      fontFamily: "'Inter', sans-serif",
+                      whiteSpace: 'normal'
+                    }}>
+                      {qa.val.startsWith('«') ? qa.val : `« ${qa.val} »`}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* BOTTOM AREA: FOOTER */}
+        <div style={{
+          position: 'relative',
+          zIndex: 5,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderTop: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
+          paddingTop: 5,
+          marginTop: 2
+        }}>
+          {/* Socials Link */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ display: 'flex', gap: 3 }}>
+              <Icon icon="ph:facebook-logo-bold" width="12" height="12" color={isDark ? '#FFF' : '#1E293B'} />
+              <Icon icon="ph:instagram-logo-bold" width="12" height="12" color={isDark ? '#FFF' : '#1E293B'} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+              <span style={{ fontSize: 5, fontWeight: 700, color: '#94A3B8' }}>SUIVEZ TOUTE L'ACTU DU CLUB</span>
+              <span style={{ fontSize: 6.5, fontWeight: 900, color: isDark ? '#10B981' : homeColor }}>{config.clubInstagram}</span>
+            </div>
+          </div>
+
+          {/* Slogan "À SUIVRE SUR LES PARQUETS !" */}
+          <div style={{
+            background: isDark ? '#10B981' : '#0F172A',
+            color: '#FFFFFF',
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontStyle: 'italic',
+            fontWeight: 900,
+            fontSize: isStory ? 12 : isPost ? 9.5 : 11,
+            padding: '2px 10px',
+            borderRadius: 3,
+            letterSpacing: 1,
+            transform: 'skewX(-6deg)'
+          }}>
+            À SUIVRE SUR LES PARQUETS !
+          </div>
+
+          {/* Hashtags */}
+          <div style={{ display: 'flex', gap: 3, fontSize: 6.5, fontWeight: 900, fontFamily: "'Outfit', sans-serif" }}>
+            <span style={{ color: isDark ? '#10B981' : homeColor }}>#BCSN</span>
+            <span style={{ color: awayColor }}>#ESPRITCLUB</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Master Graphic Renderer
   const renderActiveVisual = () => {
     switch (selectedTemplate.id) {
@@ -1656,6 +1992,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
       case 'result': return renderResultGraphic();
       case 'player_mvp': return renderMvpGraphic();
       case 'announcement': return renderAnnouncementGraphic();
+      case 'player_portrait': return renderPortraitGraphic();
       default: return renderWeekendProgramGraphic();
     }
   };
@@ -2038,6 +2375,83 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                 <input className="input" value={config.announcementTag} onChange={e => setConfig({...config, announcementTag: e.target.value})} placeholder="Badge haut" />
                 <input className="input" value={config.announcementTitle} onChange={e => setConfig({...config, announcementTitle: e.target.value})} placeholder="Titre principal" />
                 <textarea className="input textarea" rows={3} value={config.announcementBody} onChange={e => setConfig({...config, announcementBody: e.target.value})} placeholder="Message" />
+              </div>
+            )}
+
+            {/* TEMPLATE 6 : PORTRAIT DU JOUEUR */}
+            {selectedTemplate.id === 'player_portrait' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.6 }}>Identité du joueur</span>
+                <select 
+                  className="input select" 
+                  value={config.portraitSelectedMemberId} 
+                  onChange={e => {
+                    const memberId = e.target.value;
+                    const m = members.find(x => x.id === memberId);
+                    if (m) {
+                      setConfig(prev => ({
+                        ...prev,
+                        portraitSelectedMemberId: memberId,
+                        portraitPlayerName: m.name || prev.portraitPlayerName,
+                        portraitNumber: m.number || prev.portraitNumber,
+                        portraitCategory: m.team || prev.portraitCategory,
+                        portraitPosition: m.role ? `POSTE ${m.role.toUpperCase()}` : prev.portraitPosition
+                      }));
+                    } else {
+                      setConfig(prev => ({
+                        ...prev,
+                        portraitSelectedMemberId: ''
+                      }));
+                    }
+                  }}
+                >
+                  <option value="">-- Choisir un joueur (Effectif BDD) --</option>
+                  {members.map(m => (
+                    <option key={m.id} value={m.id}>{m.name} ({m.team || m.role || 'Joueur'})</option>
+                  ))}
+                </select>
+
+                <div className="grid-2">
+                  <input className="input" value={config.portraitPlayerName} onChange={e => setConfig({...config, portraitPlayerName: e.target.value})} placeholder="Nom du joueur" />
+                  <input className="input" value={config.portraitNumber} onChange={e => setConfig({...config, portraitNumber: e.target.value})} placeholder="Numéro # (ex: 7)" />
+                </div>
+                <div className="grid-2">
+                  <input className="input" value={config.portraitCategory} onChange={e => setConfig({...config, portraitCategory: e.target.value})} placeholder="Catégorie (ex: U15 A)" />
+                  <input className="input" value={config.portraitPosition} onChange={e => setConfig({...config, portraitPosition: e.target.value})} placeholder="Poste (ex: POSTE MENEUR)" />
+                </div>
+                <input className="input" value={config.portraitSeniority} onChange={e => setConfig({...config, portraitSeniority: e.target.value})} placeholder="Ancienneté (ex: AU CLUB DEPUIS 4 ANS)" />
+
+                <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.6, marginTop: 6 }}>Questions & Réponses</span>
+                
+                <div style={{ background: 'var(--bg-card)', padding: 8, borderRadius: 8, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--primary-light)' }}>1. {config.portraitQ1}</span>
+                    <input className="input" style={{ fontSize: 11, padding: '3px 6px', marginTop: 2 }} value={config.portraitA1} onChange={e => setConfig({...config, portraitA1: e.target.value})} />
+                  </div>
+                  <div>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--primary-light)' }}>2. {config.portraitQ2}</span>
+                    <input className="input" style={{ fontSize: 11, padding: '3px 6px', marginTop: 2 }} value={config.portraitA2} onChange={e => setConfig({...config, portraitA2: e.target.value})} />
+                  </div>
+                  <div>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--primary-light)' }}>3. {config.portraitQ3}</span>
+                    <input className="input" style={{ fontSize: 11, padding: '3px 6px', marginTop: 2 }} value={config.portraitA3} onChange={e => setConfig({...config, portraitA3: e.target.value})} />
+                  </div>
+                  <div>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--primary-light)' }}>4. {config.portraitQ4}</span>
+                    <input className="input" style={{ fontSize: 11, padding: '3px 6px', marginTop: 2 }} value={config.portraitA4} onChange={e => setConfig({...config, portraitA4: e.target.value})} />
+                  </div>
+                  <div>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--primary-light)' }}>5. {config.portraitQ5}</span>
+                    <input className="input" style={{ fontSize: 11, padding: '3px 6px', marginTop: 2 }} value={config.portraitA5} onChange={e => setConfig({...config, portraitA5: e.target.value})} />
+                  </div>
+                </div>
+
+                <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.6, marginTop: 4 }}>Titres & Badges</span>
+                <div className="grid-3">
+                  <input className="input" style={{ fontSize: 10 }} value={config.portraitTitleMain} onChange={e => setConfig({...config, portraitTitleMain: e.target.value})} placeholder="Titre 1" />
+                  <input className="input" style={{ fontSize: 10 }} value={config.portraitTitleSub} onChange={e => setConfig({...config, portraitTitleSub: e.target.value})} placeholder="Titre 2" />
+                  <input className="input" style={{ fontSize: 10 }} value={config.portraitTitleBadge} onChange={e => setConfig({...config, portraitTitleBadge: e.target.value})} placeholder="Badge" />
+                </div>
               </div>
             )}
           </div>
