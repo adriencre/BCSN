@@ -120,7 +120,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     programTitleSub: 'DU WEEK-END',
     clubSocialName: 'BC SAINT NICOLAS',
     clubInstagram: '@bcsn.officiel',
-    venueHome: 'au Complexe Sportif',
+    venueHome: 'au Complexe Bonne Humeur',
     venueAway: 'déplacement',
     saturdayMatches: [
       { id: 'sat-1', category: 'U11 F', time: '10h30', opponent: 'vs ARRAS', isHome: true },
@@ -145,7 +145,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
     matchAwayTeam: 'ARRAS BASKET CLUB',
     matchDate: new Date().toISOString().split('T')[0],
     matchTime: '20:30',
-    matchVenue: 'Complexe Sportif Municipal',
+    matchVenue: 'Complexe Bonne Humeur',
     matchCompetition: 'CHAMPIONNAT RÉGIONALE 2',
 
     // Result template
