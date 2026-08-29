@@ -184,14 +184,15 @@ export function FormPublicCoach() {
                   {mascTeams.map(t => {
                     const isSelected = selectedTeams.includes(t.name);
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={t.id}
                         className={`team-chip ${isSelected ? 'selected' : ''}`}
                         onClick={() => toggleTeam(t.name)}
                       >
                         <span>{t.name}</span>
                         <span className="team-chip-icon">{isSelected ? '✓' : '+'}</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -204,14 +205,15 @@ export function FormPublicCoach() {
                   {femTeams.map(t => {
                     const isSelected = selectedTeams.includes(t.name);
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={t.id}
                         className={`team-chip ${isSelected ? 'selected' : ''}`}
                         onClick={() => toggleTeam(t.name)}
                       >
                         <span>{t.name}</span>
                         <span className="team-chip-icon">{isSelected ? '✓' : '+'}</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -224,14 +226,15 @@ export function FormPublicCoach() {
                   {mixTeams.map(t => {
                     const isSelected = selectedTeams.includes(t.name);
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={t.id}
                         className={`team-chip ${isSelected ? 'selected' : ''}`}
                         onClick={() => toggleTeam(t.name)}
                       >
                         <span>{t.name}</span>
                         <span className="team-chip-icon">{isSelected ? '✓' : '+'}</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
