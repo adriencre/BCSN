@@ -89,6 +89,17 @@ export function MemberProfileModal({ member, onClose, onUpdateMember, teams = []
                   <span style={{ fontSize: 13, color: '#94A3B8' }}>Équipe non assignée</span>
                 )}
               </div>
+
+              {(member.poste || member.formAnswers?.['Poste de jeu']) && (member.poste || member.formAnswers?.['Poste de jeu']) !== '—' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                  <span style={{ fontSize: 12, color: '#94A3B8' }}>Poste(s) :</span>
+                  {(member.poste || member.formAnswers['Poste de jeu']).split(',').map((p, idx) => (
+                    <span key={idx} className="badge badge-neutral" style={{ fontSize: 11, background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', borderColor: 'rgba(16, 185, 129, 0.25)', fontWeight: 600 }}>
+                      🏀 {p.replace(/\s*\(Poste\s*\d+\)/gi, '').trim()}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

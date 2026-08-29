@@ -86,6 +86,14 @@ export function ProfilesPage({ members, onUpdateMembers, teams, onSelectMember }
                 <div className="profile-field-label">Rôle</div>
                 <div className="profile-field-value">{m.role || 'Joueur'}</div>
               </div>
+              {(m.poste || m.formAnswers?.['Poste de jeu']) && (m.poste || m.formAnswers?.['Poste de jeu']) !== '—' && (
+                <div className="profile-field">
+                  <div className="profile-field-label">Poste(s) de jeu</div>
+                  <div className="profile-field-value" style={{ color: '#10B981', fontWeight: 600 }}>
+                    {m.poste || m.formAnswers['Poste de jeu']}
+                  </div>
+                </div>
+              )}
               <div className="profile-field">
                 <div className="profile-field-label">Téléphone</div>
                 <div className="profile-field-value">{m.phone || '—'}</div>
