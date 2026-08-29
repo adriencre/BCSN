@@ -28,6 +28,7 @@ function resizeImage(file, maxWidth = 400) {
 export function FormPublicCoach() {
   const [form, setForm] = useState({
     name: '', phone: '', horaires: '', instagram: '',
+    diplome: '', depuisBCSN: '', depuisCoach: '', qualiteRecherchee: '',
     joueurPrefere: '', meilleurSouvenir: '', objectif: '', anecdote: '',
     consent: false,
   });
@@ -84,6 +85,10 @@ export function FormPublicCoach() {
       formAnswers: {
         'Équipe(s) entraînée(s)': teamsStr,
         'Téléphone': form.phone || '—',
+        'Diplôme / formation': form.diplome || '—',
+        'Au BCSN depuis': form.depuisBCSN || '—',
+        'Expérience de coach': form.depuisCoach || '—',
+        'Qualité recherchée chez les joueurs': form.qualiteRecherchee || '—',
         'Jours et horaires': form.horaires || '—',
         'Instagram': form.instagram || '—',
         'Joueur préféré': form.joueurPrefere || '—',
@@ -255,6 +260,39 @@ export function FormPublicCoach() {
           </div>
 
           <div className="form-field">
+            <label className="form-label">Diplôme / formation d’entraîneur <span className="optional">optionnel</span></label>
+            <input
+              className="form-input"
+              value={form.diplome}
+              onChange={e => setForm({ ...form, diplome: e.target.value })}
+              placeholder="Ex. CQP, BPJEPS, entraîneur régional…"
+            />
+          </div>
+
+          <div className="form-field">
+            <div className="form-row">
+              <div>
+                <label className="form-label">Depuis quand es-tu au BCSN ?</label>
+                <input
+                  className="form-input"
+                  value={form.depuisBCSN}
+                  onChange={e => setForm({ ...form, depuisBCSN: e.target.value })}
+                  placeholder="Ex. Depuis 2022"
+                />
+              </div>
+              <div>
+                <label className="form-label">Depuis combien de temps coaches-tu ?</label>
+                <input
+                  className="form-input"
+                  value={form.depuisCoach}
+                  onChange={e => setForm({ ...form, depuisCoach: e.target.value })}
+                  placeholder="Ex. 3 ans"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-field">
             <label className="form-label">Jours et horaires d'entraînement</label>
             <textarea
               className="form-input form-textarea"
@@ -283,6 +321,16 @@ export function FormPublicCoach() {
           <p style={{ fontSize: 12, color: '#64748B', marginTop: -10, marginBottom: 16, lineHeight: 1.5 }}>
             Tes réponses serviront à rédiger ta présentation sur les réseaux du club
           </p>
+
+          <div className="form-field">
+            <label className="form-label">Une qualité que tu recherches chez tes joueurs ?</label>
+            <input
+              className="form-input"
+              value={form.qualiteRecherchee}
+              onChange={e => setForm({ ...form, qualiteRecherchee: e.target.value })}
+              placeholder="Ex. L'esprit d'équipe, l'engagement..."
+            />
+          </div>
 
           <div className="form-field">
             <label className="form-label">Ton joueur préféré ?</label>
