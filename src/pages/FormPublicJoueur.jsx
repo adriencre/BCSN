@@ -3,6 +3,7 @@ import { CheckCircle, Camera, AlertCircle } from 'lucide-react';
 import { TEAMS } from '../data/teamsData';
 import { generateId } from '../hooks/useLocalStorage';
 import { isCloudEnabled, saveMemberCloud } from '../services/firebase';
+import { normalizeName } from '../utils/teamUtils';
 import '../styles/forms.css';
 
 function resizeImage(file, maxWidth = 400) {
@@ -76,40 +77,80 @@ export function FormPublicJoueur() {
     if (!form.name.trim()) { setError('Merci d\'indiquer ton prénom et nom'); return; }
     if (finalTeams.length === 0) { setError('Merci de sélectionner au moins une équipe'); return; }
 
-    const member = {
-      id: generateId(),
-      name: form.name.trim(),
-      teams: finalTeams,
-      team: finalTeams.join(', '),
-      role: 'Joueur',
-      phone: form.phone ? form.phone.trim() : '',
-      email: '',
-      imageConsent: form.consent ? 'granted' : 'denied',
-      formCompleted: true,
-      createdAt: new Date().toISOString(),
-      photo: photo || null,
-      formAnswers: {
-        'Équipe(s)': finalTeams.join(', '),
-        'Téléphone': form.phone || '—',
-        'Numéro de maillot': form.maillot || '—',
-        'Taille (cm)': form.taille || '—',
-        'Poste de jeu': form.poste || '—',
-        'Instagram': form.instagram || '—',
-        'Surnom': form.surnom || '—',
-        'Joueur/Joueuse préféré(e)': form.joueurPrefere || '—',
-        'Meilleur souvenir avec le BCSN': form.meilleurSouvenir || '—',
-        'Objectif pour cette saison': form.objectifSaison || '—',
-        'Musique avant un match': form.musiqueAvantMatch || '—',
-        'Mot pour les supporters / licenciés': form.motSupporters || '—',
-      },
-    };
+    const submittedNameNorm = normalizeName(form.name);
+
+    const existing = JSON.parse(localStorage.getItem('bcsn_members') || '[]');
+    const matchIndex = existing.findIndex(m => normalizeName(m.name) === submittedNameNorm);
+
+    let memberToSave;
+
+    if (matchIndex !== -1) {
+      // Met à jour la fiche du joueur pré-existant
+      const existingMember = existing[matchIndex];
+      memberToSave = {
+        ...existingMember,
+        name: form.name.trim(),
+        teams: finalTeams,
+        team: finalTeams.join(', '),
+        role: existingMember.role || 'Joueur',
+        phone: form.phone ? form.phone.trim() : (existingMember.phone || ''),
+        imageConsent: form.consent ? 'granted' : 'denied',
+        formCompleted: true,
+        updatedAt: new Date().toISOString(),
+        photo: photo || existingMember.photo || null,
+        formAnswers: {
+          ...(existingMember.formAnswers || {}),
+          'Équipe(s)': finalTeams.join(', '),
+          'Téléphone': form.phone || existingMember.phone || '—',
+          'Numéro de maillot': form.maillot || '—',
+          'Taille (cm)': form.taille || '—',
+          'Poste de jeu': form.poste || '—',
+          'Instagram': form.instagram || '—',
+          'Surnom': form.surnom || '—',
+          'Joueur/Joueuse préféré(e)': form.joueurPrefere || '—',
+          'Meilleur souvenir avec le BCSN': form.meilleurSouvenir || '—',
+          'Objectif pour cette saison': form.objectifSaison || '—',
+          'Musique avant un match': form.musiqueAvantMatch || '—',
+          'Mot pour les supporters / licenciés': form.motSupporters || '—',
+        },
+      };
+      existing[matchIndex] = memberToSave;
+    } else {
+      // Création d'une nouvelle fiche s'il n'existait pas encore
+      memberToSave = {
+        id: generateId(),
+        name: form.name.trim(),
+        teams: finalTeams,
+        team: finalTeams.join(', '),
+        role: 'Joueur',
+        phone: form.phone ? form.phone.trim() : '',
+        email: '',
+        imageConsent: form.consent ? 'granted' : 'denied',
+        formCompleted: true,
+        createdAt: new Date().toISOString(),
+        photo: photo || null,
+        formAnswers: {
+          'Équipe(s)': finalTeams.join(', '),
+          'Téléphone': form.phone || '—',
+          'Numéro de maillot': form.maillot || '—',
+          'Taille (cm)': form.taille || '—',
+          'Poste de jeu': form.poste || '—',
+          'Instagram': form.instagram || '—',
+          'Surnom': form.surnom || '—',
+          'Joueur/Joueuse préféré(e)': form.joueurPrefere || '—',
+          'Meilleur souvenir avec le BCSN': form.meilleurSouvenir || '—',
+          'Objectif pour cette saison': form.objectifSaison || '—',
+          'Musique avant un match': form.musiqueAvantMatch || '—',
+          'Mot pour les supporters / licenciés': form.motSupporters || '—',
+        },
+      };
+      existing.push(memberToSave);
+    }
 
     try {
       if (isCloudEnabled()) {
-        saveMemberCloud(member);
+        saveMemberCloud(memberToSave);
       }
-      const existing = JSON.parse(localStorage.getItem('bcsn_members') || '[]');
-      existing.push(member);
       localStorage.setItem('bcsn_members', JSON.stringify(existing));
       setSubmitted(true);
     } catch {

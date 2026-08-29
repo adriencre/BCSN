@@ -3,6 +3,7 @@ import { CheckCircle, Camera, AlertCircle } from 'lucide-react';
 import { TEAMS } from '../data/teamsData';
 import { generateId } from '../hooks/useLocalStorage';
 import { isCloudEnabled, saveMemberCloud } from '../services/firebase';
+import { normalizeName } from '../utils/teamUtils';
 import '../styles/forms.css';
 
 function resizeImage(file, maxWidth = 400) {
@@ -69,41 +70,80 @@ export function FormPublicCoach() {
     if (finalTeams.length === 0) { setError('Merci de sélectionner au moins une équipe entraînée'); return; }
 
     const teamsStr = finalTeams.join(', ');
+    const submittedNameNorm = normalizeName(form.name);
 
-    const member = {
-      id: generateId(),
-      name: form.name.trim(),
-      teams: finalTeams,
-      team: teamsStr,
-      role: 'Coach',
-      phone: form.phone ? form.phone.trim() : '',
-      email: '',
-      imageConsent: form.consent ? 'granted' : 'denied',
-      formCompleted: true,
-      createdAt: new Date().toISOString(),
-      photo: photo || null,
-      formAnswers: {
-        'Équipe(s) entraînée(s)': teamsStr,
-        'Téléphone': form.phone || '—',
-        'Diplôme / formation': form.diplome || '—',
-        'Au BCSN depuis': form.depuisBCSN || '—',
-        'Expérience de coach': form.depuisCoach || '—',
-        'Qualité recherchée chez les joueurs': form.qualiteRecherchee || '—',
-        'Jours et horaires': form.horaires || '—',
-        'Instagram': form.instagram || '—',
-        'Joueur préféré': form.joueurPrefere || '—',
-        'Meilleur souvenir au club': form.meilleurSouvenir || '—',
-        'Objectif cette saison': form.objectif || '—',
-        'Anecdote amusante': form.anecdote || '—',
-      },
-    };
+    const existing = JSON.parse(localStorage.getItem('bcsn_members') || '[]');
+    const matchIndex = existing.findIndex(m => normalizeName(m.name) === submittedNameNorm);
+
+    let memberToSave;
+
+    if (matchIndex !== -1) {
+      // Met à jour la fiche du coach pré-existant (ex. coach importé)
+      const existingMember = existing[matchIndex];
+      memberToSave = {
+        ...existingMember,
+        name: form.name.trim(),
+        teams: finalTeams,
+        team: teamsStr,
+        role: existingMember.role || 'Coach',
+        phone: form.phone ? form.phone.trim() : (existingMember.phone || ''),
+        imageConsent: form.consent ? 'granted' : 'denied',
+        formCompleted: true,
+        updatedAt: new Date().toISOString(),
+        photo: photo || existingMember.photo || null,
+        formAnswers: {
+          ...(existingMember.formAnswers || {}),
+          'Équipe(s) entraînée(s)': teamsStr,
+          'Téléphone': form.phone || existingMember.phone || '—',
+          'Diplôme / formation': form.diplome || '—',
+          'Au BCSN depuis': form.depuisBCSN || '—',
+          'Expérience de coach': form.depuisCoach || '—',
+          'Qualité recherchée chez les joueurs': form.qualiteRecherchee || '—',
+          'Jours et horaires': form.horaires || '—',
+          'Instagram': form.instagram || '—',
+          'Joueur préféré': form.joueurPrefere || '—',
+          'Meilleur souvenir au club': form.meilleurSouvenir || '—',
+          'Objectif cette saison': form.objectif || '—',
+          'Anecdote amusante': form.anecdote || '—',
+        },
+      };
+      existing[matchIndex] = memberToSave;
+    } else {
+      // Création d'une nouvelle fiche s'il n'existait pas encore
+      memberToSave = {
+        id: generateId(),
+        name: form.name.trim(),
+        teams: finalTeams,
+        team: teamsStr,
+        role: 'Coach',
+        phone: form.phone ? form.phone.trim() : '',
+        email: '',
+        imageConsent: form.consent ? 'granted' : 'denied',
+        formCompleted: true,
+        createdAt: new Date().toISOString(),
+        photo: photo || null,
+        formAnswers: {
+          'Équipe(s) entraînée(s)': teamsStr,
+          'Téléphone': form.phone || '—',
+          'Diplôme / formation': form.diplome || '—',
+          'Au BCSN depuis': form.depuisBCSN || '—',
+          'Expérience de coach': form.depuisCoach || '—',
+          'Qualité recherchée chez les joueurs': form.qualiteRecherchee || '—',
+          'Jours et horaires': form.horaires || '—',
+          'Instagram': form.instagram || '—',
+          'Joueur préféré': form.joueurPrefere || '—',
+          'Meilleur souvenir au club': form.meilleurSouvenir || '—',
+          'Objectif cette saison': form.objectif || '—',
+          'Anecdote amusante': form.anecdote || '—',
+        },
+      };
+      existing.push(memberToSave);
+    }
 
     try {
       if (isCloudEnabled()) {
-        saveMemberCloud(member);
+        saveMemberCloud(memberToSave);
       }
-      const existing = JSON.parse(localStorage.getItem('bcsn_members') || '[]');
-      existing.push(member);
       localStorage.setItem('bcsn_members', JSON.stringify(existing));
       setSubmitted(true);
     } catch {

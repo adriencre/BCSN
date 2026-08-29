@@ -48,3 +48,19 @@ export function formatMemberTeams(member, fallback = '—') {
   if (teams.length === 0) return fallback;
   return teams.join(', ');
 }
+
+/**
+ * Normalise un nom (minuscules, sans accents, sans espaces ni caractères spéciaux)
+ * pour effectuer une correspondance stricte insensible à la casse/accents.
+ * @param {string} name 
+ * @returns {string}
+ */
+export function normalizeName(name) {
+  if (!name) return '';
+  return name
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
