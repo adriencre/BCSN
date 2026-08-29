@@ -35,7 +35,7 @@ const POSTES = [
 
 export function FormPublicJoueur() {
   const [form, setForm] = useState({
-    name: '', team: '', maillot: '', taille: '', poste: '',
+    name: '', phone: '', team: '', maillot: '', taille: '', poste: '',
     instagram: '', surnom: '', joueurPrefere: '', consent: false,
     meilleurSouvenir: '', objectifSaison: '', musiqueAvantMatch: '', motSupporters: ''
   });
@@ -82,7 +82,7 @@ export function FormPublicJoueur() {
       teams: finalTeams,
       team: finalTeams.join(', '),
       role: 'Joueur',
-      phone: '',
+      phone: form.phone ? form.phone.trim() : '',
       email: '',
       imageConsent: form.consent ? 'granted' : 'denied',
       formCompleted: true,
@@ -90,6 +90,7 @@ export function FormPublicJoueur() {
       photo: photo || null,
       formAnswers: {
         'Équipe(s)': finalTeams.join(', '),
+        'Téléphone': form.phone || '—',
         'Numéro de maillot': form.maillot || '—',
         'Taille (cm)': form.taille || '—',
         'Poste de jeu': form.poste || '—',
@@ -161,6 +162,18 @@ export function FormPublicJoueur() {
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
               placeholder="Lucas Martin"
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">Numéro de téléphone <span className="optional">optionnel</span></label>
+            <input
+              className="form-input"
+              type="tel"
+              inputMode="tel"
+              value={form.phone}
+              onChange={e => setForm({ ...form, phone: e.target.value })}
+              placeholder="06 12 34 56 78"
             />
           </div>
 

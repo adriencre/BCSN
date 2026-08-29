@@ -27,7 +27,7 @@ function resizeImage(file, maxWidth = 400) {
 
 export function FormPublicCoach() {
   const [form, setForm] = useState({
-    name: '', horaires: '', instagram: '',
+    name: '', phone: '', horaires: '', instagram: '',
     joueurPrefere: '', meilleurSouvenir: '', objectif: '', anecdote: '',
     consent: false,
   });
@@ -75,7 +75,7 @@ export function FormPublicCoach() {
       teams: finalTeams,
       team: teamsStr,
       role: 'Coach',
-      phone: '',
+      phone: form.phone ? form.phone.trim() : '',
       email: '',
       imageConsent: form.consent ? 'granted' : 'denied',
       formCompleted: true,
@@ -83,6 +83,7 @@ export function FormPublicCoach() {
       photo: photo || null,
       formAnswers: {
         'Équipe(s) entraînée(s)': teamsStr,
+        'Téléphone': form.phone || '—',
         'Jours et horaires': form.horaires || '—',
         'Instagram': form.instagram || '—',
         'Joueur préféré': form.joueurPrefere || '—',
@@ -147,6 +148,18 @@ export function FormPublicCoach() {
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
               placeholder="Gregory Duquesne"
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">Numéro de téléphone <span className="optional">optionnel</span></label>
+            <input
+              className="form-input"
+              type="tel"
+              inputMode="tel"
+              value={form.phone}
+              onChange={e => setForm({ ...form, phone: e.target.value })}
+              placeholder="06 12 34 56 78"
             />
           </div>
 
