@@ -535,3 +535,84 @@
     border-radius: 14px;
   }
 }
+
+/* ── Multi-Teams Selector Component ── */
+.teams-selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.teams-category-block {
+  background: #0F1117;
+  border: 1px solid #252830;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.teams-category-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #64748B;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.teams-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.team-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #161921;
+  border: 1.5px solid #2A2D38;
+  border-radius: 10px;
+  color: #CBD5E1;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.team-chip:hover {
+  border-color: #168E56;
+  background: rgba(15, 109, 66, 0.1);
+  color: #F1F5F9;
+}
+
+.team-chip.selected {
+  background: rgba(15, 109, 66, 0.2);
+  border-color: #168E56;
+  color: #10B981;
+  box-shadow: 0 0 12px rgba(15, 109, 66, 0.2);
+}
+
+.team-chip-icon {
+  font-size: 12px;
+  margin-left: 6px;
+  font-weight: 800;
+}
+
+.teams-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(15, 109, 66, 0.2);
+  color: #10B981;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+

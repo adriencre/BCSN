@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Phone, Mail, Copy, CheckCircle, Users, Building2 } from 'lucide-react';
 import { BUREAU } from '../data/teamsData';
 import { getInitials, copyToClipboard } from '../hooks/useLocalStorage';
+import { hasMemberTeam, formatMemberTeams } from '../utils/teamUtils';
 
 export function ContactsPage({ teams, members, onSelectMember }) {
   const [search, setSearch] = useState('');
@@ -16,7 +17,7 @@ export function ContactsPage({ teams, members, onSelectMember }) {
 
   // Build coach contacts from teams & members
   const coachContacts = teams.map(t => {
-    const coachMember = members.find(m => m.name.toLowerCase() === t.coach.toLowerCase() || (m.team === t.name && m.role === 'Coach'));
+    const coachMember = members.find(m => m.name.toLowerCase() === t.coach.toLowerCase() || (hasMemberTeam(m, t.name) && (m.role === 'Coach' || m.role === 'Assistant Coach')));
     return {
       id: coachMember ? coachMember.id : `coach-${t.id}`,
       memberId: coachMember ? coachMember.id : null,
@@ -48,7 +49,7 @@ export function ContactsPage({ teams, members, onSelectMember }) {
       id: m.id,
       memberId: m.id,
       name: m.name,
-      role: `${m.role || 'Joueur'} — ${m.team || 'Non assigné'}`,
+      role: `${m.role || 'Joueur'} — ${formatMemberTeams(m, 'Non assigné')}`,
       phone: m.phone,
       type: 'member',
     }));

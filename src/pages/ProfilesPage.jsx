@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Filter, FileCheck, Camera, Eye, ArrowLeft } from 'lucide-react';
 import { getInitials } from '../hooks/useLocalStorage';
+import { getMemberTeams, formatMemberTeams } from '../utils/teamUtils';
 
 export function ProfilesPage({ members, onUpdateMembers, teams, onSelectMember }) {
   const [search, setSearch] = useState('');
@@ -17,7 +18,8 @@ export function ProfilesPage({ members, onUpdateMembers, teams, onSelectMember }
   };
 
   const filtered = members.filter(m => {
-    if (search && !m.name.toLowerCase().includes(search.toLowerCase()) && !(m.team || '').toLowerCase().includes(search.toLowerCase())) return false;
+    const memberTeamsStr = getMemberTeams(m).join(' ').toLowerCase();
+    if (search && !m.name.toLowerCase().includes(search.toLowerCase()) && !memberTeamsStr.includes(search.toLowerCase())) return false;
     if (filterConsent !== 'all' && m.imageConsent !== filterConsent) return false;
     if (filterForm === 'complete' && !m.formCompleted) return false;
     if (filterForm === 'pending' && m.formCompleted) return false;
@@ -31,6 +33,8 @@ export function ProfilesPage({ members, onUpdateMembers, teams, onSelectMember }
   if (selectedMember) {
     const m = members.find(mb => mb.id === selectedMember);
     if (!m) { setSelectedMember(null); return null; }
+
+    const memberTeams = getMemberTeams(m);
 
     return (
       <div>
@@ -46,7 +50,7 @@ export function ProfilesPage({ members, onUpdateMembers, teams, onSelectMember }
           )}
           <div style={{ flex: 1 }}>
             <div className="profile-name">{m.name}</div>
-            <div className="profile-role">{m.role || 'Joueur'} — {m.team || 'Non assigné'}</div>
+            <div className="profile-role">{m.role || 'Joueur'} — {formatMemberTeams(m, 'Non assigné')}</div>
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               <span className={`badge ${m.formCompleted ? 'badge-success' : 'badge-warning'}`}>
                 {m.formCompleted ? '✓ Fiche complète' : '⏳ Fiche en attente'}
@@ -67,8 +71,16 @@ export function ProfilesPage({ members, onUpdateMembers, teams, onSelectMember }
                 <div className="profile-field-value">{m.name}</div>
               </div>
               <div className="profile-field">
-                <div className="profile-field-label">Équipe</div>
-                <div className="profile-field-value">{m.team || 'Non assigné'}</div>
+                <div className="profile-field-label">Équipe(s)</div>
+                <div className="profile-field-value">
+                  {memberTeams.length > 0 ? (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
+                      {memberTeams.map((tName, idx) => (
+                        <span key={idx} className="badge badge-neutral">{tName}</span>
+                      ))}
+                    </div>
+                  ) : 'Non assigné'}
+                </div>
               </div>
               <div className="profile-field">
                 <div className="profile-field-label">Rôle</div>
@@ -138,7 +150,7 @@ export function ProfilesPage({ members, onUpdateMembers, teams, onSelectMember }
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <div className="search-wrapper" style={{ flex: 1, minWidth: 200 }}>
           <Search size={16} className="search-icon" />
-          <input className="input" placeholder="Rechercher un membre..." value={search} onChange={e => setSearch(e.target.value)} />
+          <input className="input" placeholder="Rechercher par nom ou équipe..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <select className="input select" style={{ width: 'auto', minWidth: 160 }} value={filterConsent} onChange={e => setFilterConsent(e.target.value)}>
           <option value="all">Tous les consentements</option>
@@ -166,7 +178,7 @@ export function ProfilesPage({ members, onUpdateMembers, teams, onSelectMember }
             <thead>
               <tr>
                 <th>Membre</th>
-                <th>Équipe</th>
+                <th>Équipe(s)</th>
                 <th>Rôle</th>
                 <th>Fiche</th>
                 <th>Droit Image</th>
@@ -174,40 +186,53 @@ export function ProfilesPage({ members, onUpdateMembers, teams, onSelectMember }
               </tr>
             </thead>
             <tbody>
-              {filtered.map(m => (
-                <tr key={m.id}>
-                  <td>
-                    <div 
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
-                      onClick={() => handleMemberClick(m.id)}
-                    >
-                      {m.photo ? (
-                        <img src={m.photo} alt={m.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+              {filtered.map(m => {
+                const memberTeams = getMemberTeams(m);
+                return (
+                  <tr key={m.id}>
+                    <td>
+                      <div 
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+                        onClick={() => handleMemberClick(m.id)}
+                      >
+                        {m.photo ? (
+                          <img src={m.photo} alt={m.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          <div className="table-avatar">{getInitials(m.name)}</div>
+                        )}
+                        <span style={{ fontWeight: 600, color: 'var(--primary-light)' }}>{m.name}</span>
+                      </div>
+                    </td>
+                    <td>
+                      {memberTeams.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                          {memberTeams.map((tName, idx) => (
+                            <span key={idx} className="badge badge-neutral" style={{ fontSize: 11 }}>{tName}</span>
+                          ))}
+                        </div>
                       ) : (
-                        <div className="table-avatar">{getInitials(m.name)}</div>
+                        <span style={{ color: 'var(--text-secondary)' }}>—</span>
                       )}
-                      <span style={{ fontWeight: 600, color: 'var(--primary-light)' }}>{m.name}</span>
-                    </div>
-                  </td>
-                  <td style={{ color: 'var(--text-secondary)' }}>{m.team || '—'}</td>
-                  <td><span className="badge badge-neutral">{m.role || 'Joueur'}</span></td>
-                  <td>
-                    <span className={`badge ${m.formCompleted ? 'badge-success' : 'badge-warning'}`}>
-                      {m.formCompleted ? '✓ OK' : '⏳'}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`badge ${m.imageConsent === 'granted' ? 'badge-success' : m.imageConsent === 'denied' ? 'badge-danger' : 'badge-warning'}`}>
-                      {m.imageConsent === 'granted' ? '✓ Autorisé' : m.imageConsent === 'denied' ? '✗ Refusé' : '⏳ En attente'}
-                    </span>
-                  </td>
-                  <td>
-                    <button className="btn btn-ghost btn-sm" onClick={() => handleMemberClick(m.id)}>
-                      <Eye size={14} /> Voir
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td><span className="badge badge-neutral">{m.role || 'Joueur'}</span></td>
+                    <td>
+                      <span className={`badge ${m.formCompleted ? 'badge-success' : 'badge-warning'}`}>
+                        {m.formCompleted ? '✓ OK' : '⏳'}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`badge ${m.imageConsent === 'granted' ? 'badge-success' : m.imageConsent === 'denied' ? 'badge-danger' : 'badge-warning'}`}>
+                        {m.imageConsent === 'granted' ? '✓ Autorisé' : m.imageConsent === 'denied' ? '✗ Refusé' : '⏳ En attente'}
+                      </span>
+                    </td>
+                    <td>
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleMemberClick(m.id)}>
+                        <Eye size={14} /> Voir
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -4,9 +4,12 @@ import {
   Calendar, Shield, Award, User, Sparkles, Image, Camera
 } from 'lucide-react';
 import { getInitials } from '../hooks/useLocalStorage';
+import { getMemberTeams, formatMemberTeams } from '../utils/teamUtils';
 
 export function MemberProfileModal({ member, onClose, onUpdateMember, teams = [] }) {
   if (!member) return null;
+
+  const memberTeams = getMemberTeams(member);
 
   const handleConsentChange = (newConsent) => {
     if (onUpdateMember) {
@@ -74,10 +77,18 @@ export function MemberProfileModal({ member, onClose, onUpdateMember, teams = []
                   {member.role || 'Joueur'}
                 </span>
               </div>
-              <p style={{ fontSize: 14, color: '#94A3B8', marginTop: 4 }}>
-                <Shield size={14} style={{ display: 'inline', marginRight: 4, verticalAlign: 'text-bottom' }} />
-                {member.team || 'Équipe non assignée'}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                <Shield size={14} color="#94A3B8" />
+                {memberTeams.length > 0 ? (
+                  memberTeams.map((tName, idx) => (
+                    <span key={idx} className="badge badge-neutral" style={{ fontSize: 11, background: '#0F1117' }}>
+                      {tName}
+                    </span>
+                  ))
+                ) : (
+                  <span style={{ fontSize: 13, color: '#94A3B8' }}>Équipe non assignée</span>
+                )}
+              </div>
             </div>
           </div>
 

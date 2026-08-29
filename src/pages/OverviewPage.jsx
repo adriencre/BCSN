@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, FileCheck, Camera, CalendarDays, TrendingUp, Clock, AlertCircle } from 'lucide-react';
+import { hasMemberTeam, formatMemberTeams } from '../utils/teamUtils';
 
 export function OverviewPage({ members, events, teams, onSelectMember }) {
   const totalMembers = members.length;
@@ -106,7 +107,7 @@ export function OverviewPage({ members, events, teams, onSelectMember }) {
                   <div className="table-avatar">{m.name ? m.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : '?'}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: 14 }}>{m.name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.team || 'Non assigné'}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{formatMemberTeams(m, 'Non assigné')}</div>
                   </div>
                   <span className={`badge ${m.imageConsent === 'granted' ? 'badge-success' : m.imageConsent === 'denied' ? 'badge-danger' : 'badge-warning'}`}>
                     {m.imageConsent === 'granted' ? '✓ Image' : m.imageConsent === 'denied' ? '✗ Image' : '⏳ Image'}
@@ -124,7 +125,7 @@ export function OverviewPage({ members, events, teams, onSelectMember }) {
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {teams.map(t => {
-            const count = members.filter(m => m.team === t.name).length;
+            const count = members.filter(m => hasMemberTeam(m, t.name)).length;
             return (
               <div key={t.id} style={{ background: 'var(--bg-elevated)', padding: '8px 14px', borderRadius: 'var(--radius-sm)', fontSize: 13 }}>
                 <span style={{ fontWeight: 600 }}>{t.name}</span>

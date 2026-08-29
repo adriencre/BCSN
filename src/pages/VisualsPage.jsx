@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { getInitials } from '../hooks/useLocalStorage';
+import { formatMemberTeams } from '../utils/teamUtils';
 
 // -------------------------------------------------------------
 // 1. TEMPLATES DISPONIBLES (STUDIO PRO)
@@ -2349,7 +2350,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                 <select className="input select" value={config.selectedMemberId} onChange={e => setConfig({...config, selectedMemberId: e.target.value})}>
                   <option value="">-- Choisir un joueur dans l'effectif BDD --</option>
                   {members.map(m => (
-                    <option key={m.id} value={m.id}>{m.name} ({m.team || m.role || 'Joueur'})</option>
+                    <option key={m.id} value={m.id}>{m.name} ({formatMemberTeams(m, m.role || 'Joueur')})</option>
                   ))}
                 </select>
                 <div className="grid-2">
@@ -2395,7 +2396,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                         portraitSelectedMemberId: memberId,
                         portraitPlayerName: m.name || prev.portraitPlayerName,
                         portraitNumber: answers['Numéro de maillot'] && answers['Numéro de maillot'] !== '—' ? answers['Numéro de maillot'] : (m.number || prev.portraitNumber),
-                        portraitCategory: m.team || prev.portraitCategory,
+                        portraitCategory: formatMemberTeams(m, prev.portraitCategory),
                         portraitPosition: answers['Poste de jeu'] && answers['Poste de jeu'] !== '—' ? `POSTE ${answers['Poste de jeu'].replace(/\s*\(Poste\s*\d+\)/i, '').toUpperCase()}` : (m.role ? `POSTE ${m.role.toUpperCase()}` : prev.portraitPosition),
                         portraitA2: answers['Meilleur souvenir avec le BCSN'] && answers['Meilleur souvenir avec le BCSN'] !== '—' ? answers['Meilleur souvenir avec le BCSN'] : prev.portraitA2,
                         portraitA3: answers['Objectif pour cette saison'] && answers['Objectif pour cette saison'] !== '—' ? answers['Objectif pour cette saison'] : prev.portraitA3,
@@ -2412,7 +2413,7 @@ export function VisualsPage({ teams = [], members = [], events = [], customAsset
                 >
                   <option value="">-- Choisir un joueur (Effectif BDD) --</option>
                   {members.map(m => (
-                    <option key={m.id} value={m.id}>{m.name} ({m.team || m.role || 'Joueur'})</option>
+                    <option key={m.id} value={m.id}>{m.name} ({formatMemberTeams(m, m.role || 'Joueur')})</option>
                   ))}
                 </select>
 

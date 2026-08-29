@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Users, UserPlus, ChevronRight, Search, Phone, Shield, Edit2, Trash2, X } from 'lucide-react';
 import { CATEGORIES } from '../data/teamsData';
 import { getInitials, generateId } from '../hooks/useLocalStorage';
+import { hasMemberTeam, getMemberTeams } from '../utils/teamUtils';
 
 export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, onSelectMember }) {
   const [selectedCategory, setSelectedCategory] = useState('Tous');
@@ -15,7 +16,7 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, 
     : teams.filter(t => t.category === selectedCategory);
 
   const teamMembers = selectedTeam 
-    ? members.filter(m => m.team === selectedTeam.name).filter(m =>
+    ? members.filter(m => hasMemberTeam(m, selectedTeam.name)).filter(m =>
         !search || m.name.toLowerCase().includes(search.toLowerCase())
       )
     : [];
@@ -27,6 +28,7 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, 
       name: newMember.name.trim(),
       role: newMember.role,
       phone: newMember.phone,
+      teams: [selectedTeam.name],
       team: selectedTeam.name,
       imageConsent: 'pending',
       formCompleted: false,
@@ -72,7 +74,7 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, 
 
         {showAddMember && (
           <div className="card mb-16" style={{ borderColor: 'var(--primary-light)' }}>
-            <h3 className="card-title mb-16">Ajouter un membre</h3>
+            <h3 className="card-title mb-16">Ajouter un membre à l'équipe {selectedTeam.name}</h3>
             <div className="grid-2 mb-16">
               <div className="input-group">
                 <label className="input-label">Nom complet</label>
@@ -115,6 +117,7 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, 
               <thead>
                 <tr>
                   <th>Membre</th>
+                  <th>Équipes</th>
                   <th>Rôle</th>
                   <th>Fiche</th>
                   <th>Droit Image</th>
@@ -122,40 +125,61 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, 
                 </tr>
               </thead>
               <tbody>
-                {teamMembers.map(m => (
-                  <tr key={m.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => (onSelectMember ? onSelectMember(m.id) : onNavigateProfile(m.id))}>
-                        {m.photo ? (
-                          <img src={m.photo} alt={m.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
-                        ) : (
-                          <div className="table-avatar">{getInitials(m.name)}</div>
-                        )}
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--primary-light)' }}>{m.name}</div>
-                          {m.phone && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.phone}</div>}
+                {teamMembers.map(m => {
+                  const mTeams = getMemberTeams(m);
+                  return (
+                    <tr key={m.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => (onSelectMember ? onSelectMember(m.id) : onNavigateProfile(m.id))}>
+                          {m.photo ? (
+                            <img src={m.photo} alt={m.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                          ) : (
+                            <div className="table-avatar">{getInitials(m.name)}</div>
+                          )}
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--primary-light)' }}>{m.name}</div>
+                            {m.phone && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.phone}</div>}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td><span className="badge badge-neutral">{m.role || 'Joueur'}</span></td>
-                    <td>
-                      <span className={`badge ${m.formCompleted ? 'badge-success' : 'badge-warning'}`}>
-                        {m.formCompleted ? '✓ Complète' : '⏳ En attente'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge ${m.imageConsent === 'granted' ? 'badge-success' : m.imageConsent === 'denied' ? 'badge-danger' : 'badge-warning'}`}>
-                        {m.imageConsent === 'granted' ? '✓ Autorisé' : m.imageConsent === 'denied' ? '✗ Refusé' : '⏳ En attente'}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="btn-icon" title="Voir profil" onClick={() => (onSelectMember ? onSelectMember(m.id) : onNavigateProfile(m.id))}><Edit2 size={14} /></button>
-                        <button className="btn-icon" title="Supprimer" onClick={() => handleDeleteMember(m.id)} style={{ color: 'var(--danger)' }}><Trash2 size={14} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                          {mTeams.map((tName, idx) => (
+                            <span
+                              key={idx}
+                              className="badge"
+                              style={{
+                                background: tName === selectedTeam.name ? 'rgba(15, 109, 66, 0.2)' : '#1E222D',
+                                color: tName === selectedTeam.name ? '#10B981' : '#CBD5E1',
+                                borderColor: tName === selectedTeam.name ? '#168E56' : '#2A2D38',
+                                fontSize: 11
+                              }}
+                            >
+                              {tName}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td><span className="badge badge-neutral">{m.role || 'Joueur'}</span></td>
+                      <td>
+                        <span className={`badge ${m.formCompleted ? 'badge-success' : 'badge-warning'}`}>
+                          {m.formCompleted ? '✓ Complète' : '⏳ En attente'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`badge ${m.imageConsent === 'granted' ? 'badge-success' : m.imageConsent === 'denied' ? 'badge-danger' : 'badge-warning'}`}>
+                          {m.imageConsent === 'granted' ? '✓ Autorisé' : m.imageConsent === 'denied' ? '✗ Refusé' : '⏳ En attente'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button className="btn-icon" title="Voir profil" onClick={() => (onSelectMember ? onSelectMember(m.id) : onNavigateProfile(m.id))}><Edit2 size={14} /></button>
+                          <button className="btn-icon" title="Supprimer" onClick={() => handleDeleteMember(m.id)} style={{ color: 'var(--danger)' }}><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -175,8 +199,7 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, 
 
       <div className="teams-grid">
         {filteredTeams.map(team => {
-          const count = members.filter(m => m.team === team.name).length;
-          const coachCount = members.filter(m => m.team === team.name && m.role === 'Coach').length;
+          const count = members.filter(m => hasMemberTeam(m, team.name)).length;
           return (
             <div key={team.id} className="team-card" onClick={() => setSelectedTeam(team)}>
               <div className="team-card-header">
@@ -187,7 +210,7 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, 
                 </div>
               </div>
               <div className="team-card-stats">
-                <div className="team-card-stat"><Users size={14} /> {count} joueurs</div>
+                <div className="team-card-stat"><Users size={14} /> {count} membre{count !== 1 ? 's' : ''}</div>
                 <div className="team-card-stat"><Phone size={14} /> {team.coachPhone}</div>
               </div>
             </div>

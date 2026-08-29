@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { CheckCircle, Camera, AlertCircle } from 'lucide-react';
+import { TEAMS } from '../data/teamsData';
 import { generateId } from '../hooks/useLocalStorage';
 import { isCloudEnabled, saveMemberCloud } from '../services/firebase';
 import '../styles/forms.css';
@@ -26,15 +27,25 @@ function resizeImage(file, maxWidth = 400) {
 
 export function FormPublicCoach() {
   const [form, setForm] = useState({
-    name: '', equipes: '', horaires: '', instagram: '',
+    name: '', horaires: '', instagram: '',
     joueurPrefere: '', meilleurSouvenir: '', objectif: '', anecdote: '',
     consent: false,
   });
+  const [selectedTeams, setSelectedTeams] = useState([]);
+  const [customEquipes, setCustomEquipes] = useState('');
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef(null);
+
+  const toggleTeam = (teamName) => {
+    setSelectedTeams(prev =>
+      prev.includes(teamName)
+        ? prev.filter(t => t !== teamName)
+        : [...prev, teamName]
+    );
+  };
 
   const handlePhoto = async (e) => {
     const file = e.target.files[0];
@@ -48,23 +59,30 @@ export function FormPublicCoach() {
     e.preventDefault();
     setError('');
 
+    const finalTeams = [...selectedTeams];
+    if (customEquipes.trim() && !finalTeams.includes(customEquipes.trim())) {
+      finalTeams.push(customEquipes.trim());
+    }
+
     if (!form.name.trim()) { setError('Merci d\'indiquer ton prénom et nom'); return; }
-    if (!form.equipes.trim()) { setError('Merci d\'indiquer ton/tes équipe(s)'); return; }
-    if (!form.consent) { setError('Tu dois accepter le droit à l\'image pour continuer'); return; }
+    if (finalTeams.length === 0) { setError('Merci de sélectionner au moins une équipe entraînée'); return; }
+
+    const teamsStr = finalTeams.join(', ');
 
     const member = {
       id: generateId(),
       name: form.name.trim(),
-      team: form.equipes.trim(),
+      teams: finalTeams,
+      team: teamsStr,
       role: 'Coach',
       phone: '',
       email: '',
-      imageConsent: form.consent ? 'granted' : 'pending',
+      imageConsent: form.consent ? 'granted' : 'denied',
       formCompleted: true,
       createdAt: new Date().toISOString(),
       photo: photo || null,
       formAnswers: {
-        'Équipe(s) entraînée(s)': form.equipes || '—',
+        'Équipe(s) entraînée(s)': teamsStr,
         'Jours et horaires': form.horaires || '—',
         'Instagram': form.instagram || '—',
         'Joueur préféré': form.joueurPrefere || '—',
@@ -102,6 +120,10 @@ export function FormPublicCoach() {
     );
   }
 
+  const mascTeams = TEAMS.filter(t => t.id.includes('-m'));
+  const femTeams = TEAMS.filter(t => t.id.includes('-f'));
+  const mixTeams = TEAMS.filter(t => !t.id.includes('-m') && !t.id.includes('-f'));
+
   return (
     <div className="form-page">
       <div className="form-hero">
@@ -129,13 +151,91 @@ export function FormPublicCoach() {
           </div>
 
           <div className="form-field">
-            <label className="form-label">Équipe(s) entraînée(s) <span style={{ color: '#EF4444' }}>*</span></label>
-            <input
-              className="form-input"
-              value={form.equipes}
-              onChange={e => setForm({ ...form, equipes: e.target.value })}
-              placeholder="Séniors A (M), École de basket"
-            />
+            <label className="form-label">
+              Équipe(s) entraînée(s) <span style={{ color: '#EF4444' }}>*</span>
+              {selectedTeams.length > 0 && (
+                <span className="teams-count-badge">
+                  {selectedTeams.length} sélectionnée{selectedTeams.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </label>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 10 }}>
+              Coche la ou les équipes que tu entraînes au BCSN :
+            </p>
+
+            <div className="teams-selector-container">
+              {/* Équipes Masculines */}
+              <div className="teams-category-block">
+                <div className="teams-category-title">♂️ Équipes Masculines</div>
+                <div className="teams-chip-grid">
+                  {mascTeams.map(t => {
+                    const isSelected = selectedTeams.includes(t.name);
+                    return (
+                      <div
+                        key={t.id}
+                        className={`team-chip ${isSelected ? 'selected' : ''}`}
+                        onClick={() => toggleTeam(t.name)}
+                      >
+                        <span>{t.name}</span>
+                        <span className="team-chip-icon">{isSelected ? '✓' : '+'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Équipes Féminines */}
+              <div className="teams-category-block">
+                <div className="teams-category-title">♀️ Équipes Féminines</div>
+                <div className="teams-chip-grid">
+                  {femTeams.map(t => {
+                    const isSelected = selectedTeams.includes(t.name);
+                    return (
+                      <div
+                        key={t.id}
+                        className={`team-chip ${isSelected ? 'selected' : ''}`}
+                        onClick={() => toggleTeam(t.name)}
+                      >
+                        <span>{t.name}</span>
+                        <span className="team-chip-icon">{isSelected ? '✓' : '+'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Équipes Mixtes / Autres */}
+              <div className="teams-category-block">
+                <div className="teams-category-title">⚡ Mixtes & École de Basket</div>
+                <div className="teams-chip-grid">
+                  {mixTeams.map(t => {
+                    const isSelected = selectedTeams.includes(t.name);
+                    return (
+                      <div
+                        key={t.id}
+                        className={`team-chip ${isSelected ? 'selected' : ''}`}
+                        onClick={() => toggleTeam(t.name)}
+                      >
+                        <span>{t.name}</span>
+                        <span className="team-chip-icon">{isSelected ? '✓' : '+'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Précisions ou autres équipes */}
+              <div style={{ marginTop: 4 }}>
+                <label className="form-label" style={{ fontSize: 12 }}>Précisions ou autre catégorie</label>
+                <input
+                  className="form-input"
+                  style={{ fontSize: 13, padding: '10px 14px' }}
+                  value={customEquipes}
+                  onChange={e => setCustomEquipes(e.target.value)}
+                  placeholder="Ex: Assistant Séniors A, École de basket..."
+                />
+              </div>
+            </div>
           </div>
 
           <div className="form-field">
@@ -238,10 +338,10 @@ export function FormPublicCoach() {
           <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
         </div>
 
-        {/* Consentement */}
+        {/* Consentement optionnel */}
         <div className="form-section">
           <div className="form-section-title">
-            <span className="section-icon">✅</span> Droit à l'image
+            <span className="section-icon">📷</span> Droit à l'image & Vidéo <span className="optional" style={{ fontSize: 11, color: '#64748B', fontWeight: 400, marginLeft: 4 }}>optionnel</span>
           </div>
 
           <label className={`form-consent ${form.consent ? 'checked' : ''}`}>
@@ -252,7 +352,7 @@ export function FormPublicCoach() {
             />
             <div className="form-consent-box" />
             <span className="form-consent-text">
-              J'autorise le BCSN à utiliser cette photo et mes réponses sur ses réseaux sociaux (Facebook, Instagram, Site Web) dans le cadre strict de la promotion du club.
+              J'autorise le BCSN à utiliser cette photo/vidéo et mes réponses sur ses réseaux sociaux (Facebook, Instagram, Site Web) dans le cadre de la promotion du club. <strong>Si tu préfères ne pas être diffusé(e), laisse cette case décochée.</strong>
             </span>
           </label>
         </div>

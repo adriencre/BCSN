@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { getInitials } from '../hooks/useLocalStorage';
+import { formatMemberTeams } from '../utils/teamUtils';
 
 export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCustomAssets }) {
   const [activeTab, setActiveTab] = useState('backgrounds'); // 'backgrounds' | 'players' | 'coaches' | 'logos'
@@ -224,7 +225,7 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
                     <img src={p.photo} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div style={{ fontWeight: 800, fontSize: 14, color: '#F8FAFC' }}>{p.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--primary-light)', marginTop: 2 }}>{p.team || 'Joueur BCSN'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--primary-light)', marginTop: 2 }}>{formatMemberTeams(p, 'Joueur BCSN')}</div>
                 </div>
               ))}
             </div>
@@ -251,7 +252,7 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
                     <img src={c.photo} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div style={{ fontWeight: 800, fontSize: 14, color: '#F8FAFC' }}>{c.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--primary-light)', marginTop: 2 }}>{c.role || 'Coach'} — {c.team || 'BCSN'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--primary-light)', marginTop: 2 }}>{c.role || 'Coach'} — {formatMemberTeams(c, 'BCSN')}</div>
                 </div>
               ))}
             </div>

@@ -45,6 +45,17 @@ export function FormPublicJoueur() {
   const [error, setError] = useState('');
   const fileRef = useRef(null);
 
+  const [selectedTeams, setSelectedTeams] = useState([]);
+  const [customTeam, setCustomTeam] = useState('');
+
+  const toggleTeam = (teamName) => {
+    setSelectedTeams(prev =>
+      prev.includes(teamName)
+        ? prev.filter(t => t !== teamName)
+        : [...prev, teamName]
+    );
+  };
+
   const handlePhoto = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -57,22 +68,28 @@ export function FormPublicJoueur() {
     e.preventDefault();
     setError('');
 
+    const finalTeams = [...selectedTeams];
+    if (customTeam.trim() && !finalTeams.includes(customTeam.trim())) {
+      finalTeams.push(customTeam.trim());
+    }
+
     if (!form.name.trim()) { setError('Merci d\'indiquer ton prénom et nom'); return; }
-    if (!form.team) { setError('Merci de sélectionner ton équipe'); return; }
-    if (!form.consent) { setError('Tu dois accepter le droit à l\'image pour continuer'); return; }
+    if (finalTeams.length === 0) { setError('Merci de sélectionner au moins une équipe'); return; }
 
     const member = {
       id: generateId(),
       name: form.name.trim(),
-      team: form.team,
+      teams: finalTeams,
+      team: finalTeams.join(', '),
       role: 'Joueur',
       phone: '',
       email: '',
-      imageConsent: form.consent ? 'granted' : 'pending',
+      imageConsent: form.consent ? 'granted' : 'denied',
       formCompleted: true,
       createdAt: new Date().toISOString(),
       photo: photo || null,
       formAnswers: {
+        'Équipe(s)': finalTeams.join(', '),
         'Numéro de maillot': form.maillot || '—',
         'Taille (cm)': form.taille || '—',
         'Poste de jeu': form.poste || '—',
@@ -107,19 +124,26 @@ export function FormPublicJoueur() {
             <CheckCircle size={40} color="#10B981" />
           </div>
           <h1>C'est envoyé ! 🏀</h1>
-          <p>Merci <strong>{form.name}</strong> !<br />Ta carte joueur est en cours de création.</p>
+          <p>Merci <strong>{form.name}</strong> !<br />Ta fiche a bien été enregistrée.</p>
           <p className="close-hint">Tu peux fermer cette page.</p>
         </div>
       </div>
     );
   }
 
+  // Regroupement des équipes par genre/section
+  const mascTeams = TEAMS.filter(t => t.id.includes('-m'));
+  const femTeams = TEAMS.filter(t => t.id.includes('-f'));
+  const mixTeams = TEAMS.filter(t => !t.id.includes('-m') && !t.id.includes('-f'));
+
   return (
     <div className="form-page">
       <div className="form-hero">
         <div className="form-hero-emoji">🏀</div>
-        <h1>Crée ta Carte Joueur</h1>
-        <p>2 minutes pour créer ta carte de collection et être mis en avant sur les réseaux du BCSN !</p>
+        <h1>Mise en avant Joueur du BCSN</h1>
+        <p>
+          Remplis ce formulaire (2 min) ! 1 fois par semaine, un joueur ou une joueuse sera choisi(e) au hasard pour être mis(e) en avant sur nos réseaux Facebook & Instagram ! 🌟
+        </p>
       </div>
 
       <form className="form-card" onSubmit={handleSubmit}>
@@ -141,15 +165,91 @@ export function FormPublicJoueur() {
           </div>
 
           <div className="form-field">
-            <label className="form-label">Ton équipe <span style={{ color: '#EF4444' }}>*</span></label>
-            <select
-              className="form-input form-select"
-              value={form.team}
-              onChange={e => setForm({ ...form, team: e.target.value })}
-            >
-              <option value="">— Choisis ton équipe —</option>
-              {TEAMS.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
-            </select>
+            <label className="form-label">
+              Ton / Tes équipe(s) <span style={{ color: '#EF4444' }}>*</span>
+              {selectedTeams.length > 0 && (
+                <span className="teams-count-badge">
+                  {selectedTeams.length} sélectionnée{selectedTeams.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </label>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 10 }}>
+              Sélectionne une ou plusieurs équipes si tu joues dans différentes catégories :
+            </p>
+
+            <div className="teams-selector-container">
+              {/* Équipes Masculines */}
+              <div className="teams-category-block">
+                <div className="teams-category-title">♂️ Équipes Masculines</div>
+                <div className="teams-chip-grid">
+                  {mascTeams.map(t => {
+                    const isSelected = selectedTeams.includes(t.name);
+                    return (
+                      <div
+                        key={t.id}
+                        className={`team-chip ${isSelected ? 'selected' : ''}`}
+                        onClick={() => toggleTeam(t.name)}
+                      >
+                        <span>{t.name}</span>
+                        <span className="team-chip-icon">{isSelected ? '✓' : '+'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Équipes Féminines */}
+              <div className="teams-category-block">
+                <div className="teams-category-title">♀️ Équipes Féminines</div>
+                <div className="teams-chip-grid">
+                  {femTeams.map(t => {
+                    const isSelected = selectedTeams.includes(t.name);
+                    return (
+                      <div
+                        key={t.id}
+                        className={`team-chip ${isSelected ? 'selected' : ''}`}
+                        onClick={() => toggleTeam(t.name)}
+                      >
+                        <span>{t.name}</span>
+                        <span className="team-chip-icon">{isSelected ? '✓' : '+'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Équipes Mixtes / Autres */}
+              <div className="teams-category-block">
+                <div className="teams-category-title">⚡ Mixtes & École de Basket</div>
+                <div className="teams-chip-grid">
+                  {mixTeams.map(t => {
+                    const isSelected = selectedTeams.includes(t.name);
+                    return (
+                      <div
+                        key={t.id}
+                        className={`team-chip ${isSelected ? 'selected' : ''}`}
+                        onClick={() => toggleTeam(t.name)}
+                      >
+                        <span>{t.name}</span>
+                        <span className="team-chip-icon">{isSelected ? '✓' : '+'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Champ équipe personnalisée si pas dans la liste */}
+              <div style={{ marginTop: 4 }}>
+                <label className="form-label" style={{ fontSize: 12 }}>Autre équipe <span className="optional">(si non figurante ci-dessus)</span></label>
+                <input
+                  className="form-input"
+                  style={{ fontSize: 13, padding: '10px 14px' }}
+                  value={customTeam}
+                  onChange={e => setCustomTeam(e.target.value)}
+                  placeholder="Ex: U9 Masc B..."
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -319,10 +419,10 @@ export function FormPublicJoueur() {
           <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
         </div>
 
-        {/* Section 5 — Consent */}
+        {/* Section 5 — Consentement optionnel */}
         <div className="form-section">
           <div className="form-section-title">
-            <span className="section-icon">✅</span> Droit à l'image
+            <span className="section-icon">📷</span> Droit à l'image & Vidéo <span className="optional" style={{ fontSize: 11, color: '#64748B', fontWeight: 400, marginLeft: 4 }}>optionnel</span>
           </div>
 
           <label className={`form-consent ${form.consent ? 'checked' : ''}`}>
@@ -333,7 +433,7 @@ export function FormPublicJoueur() {
             />
             <div className="form-consent-box" />
             <span className="form-consent-text">
-              J'autorise le club à utiliser cette photo sur ses réseaux sociaux (Facebook, Instagram, Site Web) pour la promotion du club. <strong>Pour les mineurs, cette case vaut accord du représentant légal.</strong>
+              J'autorise le club à utiliser ma photo/vidéo sur ses réseaux sociaux (Facebook, Instagram, Site Web) pour la promotion du club. <strong>Si tu ne souhaites pas apparaître sur les réseaux, laisse cette case décochée.</strong> (Pour les mineurs, la coche vaut accord du représentant légal).
             </span>
           </label>
         </div>
@@ -347,7 +447,7 @@ export function FormPublicJoueur() {
 
         {/* Submit */}
         <button type="submit" className="form-submit">
-          🏀 Envoyer ma carte joueur
+          🏀 Valider ma fiche joueur
         </button>
       </form>
     </div>
