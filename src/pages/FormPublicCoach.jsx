@@ -28,7 +28,7 @@ function resizeImage(file, maxWidth = 400) {
 
 export function FormPublicCoach() {
   const [form, setForm] = useState({
-    name: '', phone: '', horaires: '', instagram: '',
+    name: '', horaires: '', instagram: '',
     diplome: '', depuisBCSN: '', depuisCoach: '', qualiteRecherchee: '',
     joueurPrefere: '', meilleurSouvenir: '', objectif: '', anecdote: '',
     consent: false,
@@ -78,7 +78,7 @@ export function FormPublicCoach() {
     let memberToSave;
 
     if (matchIndex !== -1) {
-      // Met à jour la fiche du coach pré-existant (ex. coach importé)
+      // Met à jour la fiche du coach pré-existant
       const existingMember = existing[matchIndex];
       memberToSave = {
         ...existingMember,
@@ -86,7 +86,6 @@ export function FormPublicCoach() {
         teams: finalTeams,
         team: teamsStr,
         role: existingMember.role || 'Coach',
-        phone: form.phone ? form.phone.trim() : (existingMember.phone || ''),
         imageConsent: form.consent ? 'granted' : 'denied',
         formCompleted: true,
         updatedAt: new Date().toISOString(),
@@ -94,7 +93,6 @@ export function FormPublicCoach() {
         formAnswers: {
           ...(existingMember.formAnswers || {}),
           'Équipe(s) entraînée(s)': teamsStr,
-          'Téléphone': form.phone || existingMember.phone || '—',
           'Diplôme / formation': form.diplome || '—',
           'Au BCSN depuis': form.depuisBCSN || '—',
           'Expérience de coach': form.depuisCoach || '—',
@@ -116,7 +114,7 @@ export function FormPublicCoach() {
         teams: finalTeams,
         team: teamsStr,
         role: 'Coach',
-        phone: form.phone ? form.phone.trim() : '',
+        phone: '',
         email: '',
         imageConsent: form.consent ? 'granted' : 'denied',
         formCompleted: true,
@@ -124,7 +122,6 @@ export function FormPublicCoach() {
         photo: photo || null,
         formAnswers: {
           'Équipe(s) entraînée(s)': teamsStr,
-          'Téléphone': form.phone || '—',
           'Diplôme / formation': form.diplome || '—',
           'Au BCSN depuis': form.depuisBCSN || '—',
           'Expérience de coach': form.depuisCoach || '—',
@@ -193,18 +190,6 @@ export function FormPublicCoach() {
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
               placeholder="Gregory Duquesne"
-            />
-          </div>
-
-          <div className="form-field">
-            <label className="form-label">Numéro de téléphone <span className="optional">optionnel</span></label>
-            <input
-              className="form-input"
-              type="tel"
-              inputMode="tel"
-              value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value })}
-              placeholder="06 12 34 56 78"
             />
           </div>
 

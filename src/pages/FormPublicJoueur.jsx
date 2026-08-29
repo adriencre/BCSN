@@ -36,10 +36,11 @@ const POSTES = [
 
 export function FormPublicJoueur() {
   const [form, setForm] = useState({
-    name: '', phone: '', team: '', maillot: '', taille: '', poste: '',
+    name: '', team: '', maillot: '', taille: '',
     instagram: '', surnom: '', joueurPrefere: '', consent: false,
     meilleurSouvenir: '', objectifSaison: '', musiqueAvantMatch: '', motSupporters: ''
   });
+  const [selectedPostes, setSelectedPostes] = useState([]);
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitted, setSubmitted] = useState(false);
@@ -54,6 +55,14 @@ export function FormPublicJoueur() {
       prev.includes(teamName)
         ? prev.filter(t => t !== teamName)
         : [...prev, teamName]
+    );
+  };
+
+  const togglePoste = (posteValue) => {
+    setSelectedPostes(prev =>
+      prev.includes(posteValue)
+        ? prev.filter(p => p !== posteValue)
+        : [...prev, posteValue]
     );
   };
 
@@ -77,6 +86,7 @@ export function FormPublicJoueur() {
     if (!form.name.trim()) { setError('Merci d\'indiquer ton prénom et nom'); return; }
     if (finalTeams.length === 0) { setError('Merci de sélectionner au moins une équipe'); return; }
 
+    const postesStr = selectedPostes.join(', ');
     const submittedNameNorm = normalizeName(form.name);
 
     const existing = JSON.parse(localStorage.getItem('bcsn_members') || '[]');
@@ -93,7 +103,7 @@ export function FormPublicJoueur() {
         teams: finalTeams,
         team: finalTeams.join(', '),
         role: existingMember.role || 'Joueur',
-        phone: form.phone ? form.phone.trim() : (existingMember.phone || ''),
+        poste: postesStr,
         imageConsent: form.consent ? 'granted' : 'denied',
         formCompleted: true,
         updatedAt: new Date().toISOString(),
@@ -101,10 +111,9 @@ export function FormPublicJoueur() {
         formAnswers: {
           ...(existingMember.formAnswers || {}),
           'Équipe(s)': finalTeams.join(', '),
-          'Téléphone': form.phone || existingMember.phone || '—',
           'Numéro de maillot': form.maillot || '—',
           'Taille (cm)': form.taille || '—',
-          'Poste de jeu': form.poste || '—',
+          'Poste de jeu': postesStr || '—',
           'Instagram': form.instagram || '—',
           'Surnom': form.surnom || '—',
           'Joueur/Joueuse préféré(e)': form.joueurPrefere || '—',
@@ -123,7 +132,8 @@ export function FormPublicJoueur() {
         teams: finalTeams,
         team: finalTeams.join(', '),
         role: 'Joueur',
-        phone: form.phone ? form.phone.trim() : '',
+        poste: postesStr,
+        phone: '',
         email: '',
         imageConsent: form.consent ? 'granted' : 'denied',
         formCompleted: true,
@@ -131,10 +141,9 @@ export function FormPublicJoueur() {
         photo: photo || null,
         formAnswers: {
           'Équipe(s)': finalTeams.join(', '),
-          'Téléphone': form.phone || '—',
           'Numéro de maillot': form.maillot || '—',
           'Taille (cm)': form.taille || '—',
-          'Poste de jeu': form.poste || '—',
+          'Poste de jeu': postesStr || '—',
           'Instagram': form.instagram || '—',
           'Surnom': form.surnom || '—',
           'Joueur/Joueuse préféré(e)': form.joueurPrefere || '—',
@@ -207,18 +216,6 @@ export function FormPublicJoueur() {
           </div>
 
           <div className="form-field">
-            <label className="form-label">Numéro de téléphone <span className="optional">optionnel</span></label>
-            <input
-              className="form-input"
-              type="tel"
-              inputMode="tel"
-              value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value })}
-              placeholder="06 12 34 56 78"
-            />
-          </div>
-
-          <div className="form-field">
             <label className="form-label">
               Ton / Tes équipe(s) <span style={{ color: '#EF4444' }}>*</span>
               {selectedTeams.length > 0 && (
@@ -227,7 +224,7 @@ export function FormPublicJoueur() {
                 </span>
               )}
             </label>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 10 }}>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 10, textAlign: 'center' }}>
               Sélectionne une ou plusieurs équipes si tu joues dans différentes catégories :
             </p>
 
@@ -344,24 +341,32 @@ export function FormPublicJoueur() {
           </div>
 
           <div className="form-field">
-            <label className="form-label">Ton poste</label>
-            <div className="form-radio-group">
-              {POSTES.map(p => (
-                <label
-                  key={p.value}
-                  className={`form-radio ${form.poste === p.value ? 'selected' : ''}`}
-                >
-                  <input
-                    type="radio"
-                    name="poste"
-                    value={p.value}
-                    checked={form.poste === p.value}
-                    onChange={e => setForm({ ...form, poste: e.target.value })}
-                  />
-                  <div className="form-radio-dot" />
-                  <span className="form-radio-label">{p.emoji} {p.value}</span>
-                </label>
-              ))}
+            <label className="form-label">
+              Ton / Tes poste(s) de jeu
+              {selectedPostes.length > 0 && (
+                <span className="teams-count-badge">
+                  {selectedPostes.length} sélectionné{selectedPostes.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </label>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 10, textAlign: 'center' }}>
+              Sélectionne un ou plusieurs postes si tu es polyvalent(e) :
+            </p>
+            <div className="teams-chip-grid">
+              {POSTES.map(p => {
+                const isSelected = selectedPostes.includes(p.value);
+                return (
+                  <button
+                    type="button"
+                    key={p.value}
+                    className={`team-chip ${isSelected ? 'selected' : ''}`}
+                    onClick={() => togglePoste(p.value)}
+                  >
+                    <span>{p.emoji} {p.value}</span>
+                    <span className="team-chip-icon">{isSelected ? '✓' : '+'}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
