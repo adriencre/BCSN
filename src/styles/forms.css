@@ -94,7 +94,9 @@
   margin-bottom: 18px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  text-align: center;
 }
 
 .form-section-title .section-icon {
@@ -111,6 +113,7 @@
 /* Fields */
 .form-field {
   margin-bottom: 16px;
+  text-align: center;
 }
 
 .form-field:last-child {
@@ -123,6 +126,7 @@
   font-weight: 600;
   color: #CBD5E1;
   margin-bottom: 7px;
+  text-align: center;
 }
 
 .form-label .optional {
@@ -144,10 +148,12 @@
   outline: none;
   -webkit-appearance: none;
   appearance: none;
+  text-align: center;
 }
 
 .form-input::placeholder {
   color: #4A5168;
+  text-align: center;
 }
 
 .form-input:focus {
@@ -159,6 +165,7 @@
   resize: vertical;
   min-height: 88px;
   line-height: 1.5;
+  text-align: center;
 }
 
 .form-select {
@@ -167,6 +174,7 @@
   background-repeat: no-repeat;
   background-position: right 16px center;
   padding-right: 40px;
+  text-align-last: center;
 }
 
 .form-row {
@@ -185,6 +193,7 @@
 .form-radio {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   padding: 12px 16px;
   background: #0F1117;
@@ -193,6 +202,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
+  text-align: center;
 }
 
 .form-radio:active {
@@ -559,7 +569,9 @@
   margin-bottom: 8px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  text-align: center;
 }
 
 .teams-chip-grid {
@@ -571,7 +583,8 @@
 .team-chip {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 6px;
   padding: 10px 14px;
   min-height: 46px;
   background: #161921;
@@ -586,7 +599,7 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   width: 100%;
-  text-align: left;
+  text-align: center;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
