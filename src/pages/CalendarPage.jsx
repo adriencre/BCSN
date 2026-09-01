@@ -6,8 +6,7 @@ import {
 } from 'lucide-react';
 import { EVENT_TYPES } from '../data/teamsData';
 import { ALL_PLANNING_2026_2027 } from '../data/planning2026_2027';
-import { generateId } from '../hooks/useLocalStorage';
-import { isCloudEnabled, saveEventCloud, deleteEventCloud, seedEventsToCloud } from '../services/firebase';
+import { isCloudEnabled, saveEventCloud, deleteEventCloud, seedEventsToCloud } from '../services/supabase';
 
 const DAYS_SHORT = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const MONTHS_FR = [

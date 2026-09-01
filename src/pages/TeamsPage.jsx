@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, ChevronRight, Search, Phone, Shield, Edit2, Trash2, X } from 'lucide-react';
 import { CATEGORIES } from '../data/teamsData';
-import { getInitials, generateId } from '../hooks/useLocalStorage';
 import { hasMemberTeam, getMemberTeams } from '../utils/teamUtils';
+import { isCloudEnabled, saveMemberCloud, deleteMemberCloud } from '../services/supabase';
 
 export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, onSelectMember }) {
   const [selectedCategory, setSelectedCategory] = useState('Tous');
@@ -21,7 +21,7 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, 
       )
     : [];
 
-  const handleAddMember = () => {
+  const handleAddMember = async () => {
     if (!newMember.name.trim()) return;
     const member = {
       id: generateId(),
@@ -36,13 +36,27 @@ export function TeamsPage({ teams, members, onNavigateProfile, onUpdateMembers, 
       formAnswers: {},
     };
     onUpdateMembers(prev => [...prev, member]);
+    if (isCloudEnabled()) {
+      try {
+        await saveMemberCloud(member);
+      } catch (err) {
+        console.warn("Erreur ajout membre Supabase :", err);
+      }
+    }
     setNewMember({ name: '', role: 'Joueur', phone: '' });
     setShowAddMember(false);
   };
 
-  const handleDeleteMember = (memberId) => {
+  const handleDeleteMember = async (memberId) => {
     if (window.confirm('Supprimer ce membre ?')) {
       onUpdateMembers(prev => prev.filter(m => m.id !== memberId));
+      if (isCloudEnabled()) {
+        try {
+          await deleteMemberCloud(memberId);
+        } catch (err) {
+          console.warn("Erreur suppression membre Supabase :", err);
+        }
+      }
     }
   };
 

@@ -4,8 +4,8 @@ import {
   Image as ImageIcon, Plus, CheckCircle, Sparkles, Layers
 } from 'lucide-react';
 import { Icon } from '@iconify/react';
-import { getInitials } from '../hooks/useLocalStorage';
 import { formatMemberTeams } from '../utils/teamUtils';
+import { isCloudEnabled, saveCustomAssetCloud, deleteCustomAssetCloud } from '../services/supabase';
 
 export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCustomAssets }) {
   const [activeTab, setActiveTab] = useState('backgrounds'); // 'backgrounds' | 'players' | 'coaches' | 'logos'
@@ -28,7 +28,7 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const dataUrl = event.target.result;
       const newAsset = {
         id: `asset-${Date.now()}`,
@@ -38,15 +38,29 @@ export function MediaLibraryPage({ members = [], customAssets = [], onUpdateCust
         createdAt: new Date().toISOString(),
       };
       onUpdateCustomAssets(prev => [newAsset, ...prev]);
+      if (isCloudEnabled()) {
+        try {
+          await saveCustomAssetCloud(newAsset);
+        } catch (err) {
+          console.warn("Erreur sauvegarde asset Supabase :", err);
+        }
+      }
       setNewAssetName('');
       setNewAssetUrl('');
     };
     reader.readAsDataURL(file);
   };
 
-  const handleDeleteAsset = (id) => {
+  const handleDeleteAsset = async (id) => {
     if (window.confirm('Supprimer cet asset de la médiathèque ?')) {
       onUpdateCustomAssets(prev => prev.filter(a => a.id !== id));
+      if (isCloudEnabled()) {
+        try {
+          await deleteCustomAssetCloud(id);
+        } catch (err) {
+          console.warn("Erreur suppression asset Supabase :", err);
+        }
+      }
     }
   };
 

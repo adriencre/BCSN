@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { TEAMS } from './data/teamsData';
 import { ALL_PLANNING_2026_2027 } from './data/planning2026_2027';
+import migratedMembers from './data/migrated_firebase_members.json';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { OverviewPage } from './pages/OverviewPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -18,7 +19,7 @@ import { FormPublicCoach } from './pages/FormPublicCoach';
 import { LoginGate, isAuthenticated } from './components/LoginGate';
 import { CloudConfigModal } from './components/CloudConfigModal';
 import { MemberProfileModal } from './components/MemberProfileModal';
-import { subscribeMembers, subscribeEvents, isCloudEnabled } from './services/firebase';
+import { subscribeMembers, subscribeEvents, subscribeCustomAssets, updateMemberCloud, isCloudEnabled } from './services/supabase';
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard, section: 'principal' },
@@ -44,7 +45,7 @@ export default function App() {
   const [authenticated, setAuthenticated] = useState(() => isAuthenticated());
   const [activePage, setActivePage] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [members, setMembers] = useLocalStorage('bcsn_members', []);
+  const [members, setMembers] = useLocalStorage('bcsn_members', migratedMembers);
   const [events, setEvents] = useLocalStorage('bcsn_events', ALL_PLANNING_2026_2027);
   const [customAssets, setCustomAssets] = useLocalStorage('bcsn_custom_assets', []);
   const [toast, setToast] = useState(null);
@@ -52,14 +53,17 @@ export default function App() {
   const [showCloudModal, setShowCloudModal] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState(null);
 
-  // Ensure default events are seeded if events list is empty
+  // Ensure default events and members are populated
   useEffect(() => {
     if (!events || events.length === 0) {
       setEvents(ALL_PLANNING_2026_2027);
     }
+    if (!members || members.length === 0) {
+      setMembers(migratedMembers);
+    }
   }, []);
 
-  // Real-time Cloud subscription (Firestore)
+  // Real-time Cloud subscription (Supabase)
   useEffect(() => {
     if (!isCloudEnabled()) return;
 
@@ -75,9 +79,16 @@ export default function App() {
       }
     });
 
+    const unsubAssets = subscribeCustomAssets((cloudAssets) => {
+      if (cloudAssets && cloudAssets.length > 0) {
+        setCustomAssets(cloudAssets);
+      }
+    });
+
     return () => {
       if (unsubMembers) unsubMembers();
       if (unsubEvents) unsubEvents();
+      if (unsubAssets) unsubAssets();
     };
   }, []);
 
@@ -133,6 +144,11 @@ export default function App() {
 
   const handleUpdateMember = (id, updates) => {
     setMembers(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+    if (isCloudEnabled()) {
+      updateMemberCloud(id, updates).catch(err => {
+        console.warn("Erreur mise à jour membre Supabase :", err);
+      });
+    }
   };
 
   const selectedMember = selectedMemberId ? members.find(m => m.id === selectedMemberId) : null;

@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { CheckCircle, Camera, AlertCircle } from 'lucide-react';
 import { TEAMS } from '../data/teamsData';
 import { generateId } from '../hooks/useLocalStorage';
-import { isCloudEnabled, saveMemberCloud } from '../services/firebase';
+import { isCloudEnabled, saveMemberCloud } from '../services/supabase';
 import { normalizeName } from '../utils/teamUtils';
 import '../styles/forms.css';
 
@@ -74,7 +74,7 @@ export function FormPublicJoueur() {
     setPhotoPreview(resized);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -158,7 +158,7 @@ export function FormPublicJoueur() {
 
     try {
       if (isCloudEnabled()) {
-        saveMemberCloud(memberToSave);
+        await saveMemberCloud(memberToSave);
       }
       localStorage.setItem('bcsn_members', JSON.stringify(existing));
       setSubmitted(true);
