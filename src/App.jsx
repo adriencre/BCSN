@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { TEAMS } from './data/teamsData';
 import { ALL_PLANNING_2026_2027 } from './data/planning2026_2027';
-import migratedMembers from './data/migrated_firebase_members.json';
+import { migratedMembers } from './data/migrated_firebase_members.js';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { OverviewPage } from './pages/OverviewPage';
 import { TeamsPage } from './pages/TeamsPage';

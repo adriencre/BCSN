@@ -2337,21 +2337,7 @@ export const MATCHES_2026_2027 = [
     note: 'Forfait Bruay',
     category: 'Cadets'
   },
-  {
-    id: 'm-20270328-senf',
-    date: '2027-03-28',
-    time: '10:30',
-    equipe: 'SENIORS F',
-    adversaire: 'Méricourt',
-    lieu: 'Domicile',
-    isAway: false,
-    title: 'SENIORS F contre Méricourt',
-    type: 'match',
-    typeLabel: 'Match',
-    color: '#EF4444',
-    note: '',
-    category: 'Seniors'
-  },
+
 
   // ── AVRIL 2027 ──
   {

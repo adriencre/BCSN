@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { getSupabaseConfig, TABLE_PREFIX } from '../config/supabaseConfig';
-import migratedMembers from '../data/migrated_firebase_members.json';
-import { ALL_PLANNING_2026_2027 } from '../data/planning2026_2027';
+import { getSupabaseConfig, TABLE_PREFIX } from '../config/supabaseConfig.js';
+import { migratedMembers } from '../data/migrated_firebase_members.js';
+import { ALL_PLANNING_2026_2027 } from '../data/planning2026_2027.js';
 
 let supabase = null;
 let currentConfigKey = '';
@@ -298,7 +298,12 @@ export async function seedMembersToCloud(membersList) {
   if (!isConnected || !supabase) throw new Error("Supabase non connecté.");
 
   try {
-    const rows = membersList.map(memberToCloud);
+    const uniqueMap = new Map();
+    membersList.forEach(m => {
+      const row = memberToCloud(m);
+      if (row.id) uniqueMap.set(row.id, row);
+    });
+    const rows = Array.from(uniqueMap.values());
     const chunkSize = 50;
     for (let i = 0; i < rows.length; i += chunkSize) {
       const chunk = rows.slice(i, i + chunkSize);
@@ -400,7 +405,12 @@ export async function seedEventsToCloud(eventsList) {
   if (!isConnected || !supabase) throw new Error("Supabase non connecté.");
 
   try {
-    const rows = eventsList.map(eventToCloud);
+    const uniqueMap = new Map();
+    eventsList.forEach(e => {
+      const row = eventToCloud(e);
+      if (row.id) uniqueMap.set(row.id, row);
+    });
+    const rows = Array.from(uniqueMap.values());
     const chunkSize = 100;
     for (let i = 0; i < rows.length; i += chunkSize) {
       const chunk = rows.slice(i, i + chunkSize);
